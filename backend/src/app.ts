@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import router from "./routes/index";
 
 const app = express();
 
@@ -16,5 +17,8 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
+
+
+app.use("/api/v1", router);
 
 export default app;

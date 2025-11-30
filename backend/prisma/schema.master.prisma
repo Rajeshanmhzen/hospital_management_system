@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/master-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MASTER_DATABASE_URL")
+}
+
+// Super Admins
+model superAdmin {
+  id        String  @id @default(uuid())
+  email     String  @unique
+  password  String
+  name      String
+  isActive  Boolean @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Tenants (Hospitals)
+
+model Tenant {
+  id           String   @id @default(uuid())
+  name         String
+  subdomain    String   @unique
+  ownerName     String
+  ownerEmail    String
+  ownerPhone    String?
+  dbUrl         String
+  logo          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  subscriptions Subscription[]
+
+  @@map("tenants")
+}
+
+// Subscription
+
+model Subscription {
+  id        String   @id @default(uuid())
+  tenantId  String
+  planName  String
+  planPrice Decimal  @db.Decimal(10,2)
+  billingCycle String
+  maxUsers  Int
+  maxPatients Int
+  features  Json
+  status    SubscriptionStatus @default(ACTIVE)
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  payments  Payment[]
+}
+
+// Payment
+
+model Payment {
+  id             String @id @default(uuid())
+  subscriptionId String
+  amount        Decimal @db.Decimal(10,2)
+  currency      String @default("USD")
+  status        PaymentStatus @default(PENDING)
+  transactionId String?
+  paidAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  subscription  Subscription @relation(fields: [subscriptionId], references: [id])
+}
+
+// Enums
+
+enum TenantStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
