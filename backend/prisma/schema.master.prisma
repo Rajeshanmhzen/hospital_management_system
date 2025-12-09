@@ -30,6 +30,7 @@ model Tenant {
   ownerPhone    String?
   dbUrl         String
   logo          String?
+  status        TenantStatus @default(PENDING)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   subscriptions Subscription[]
@@ -92,5 +93,12 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+enum TenantStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
 }
 

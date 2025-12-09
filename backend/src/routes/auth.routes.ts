@@ -6,7 +6,7 @@ const authController = new AuthController();
 
 // Public routes
 router.post("/login", authController.login);
-router.post("/logout", authController.logout);
+router.get("/logout", authController.logout);
 router.post("/refresh", authController.refreshToken);
 
 // Backward compatibility

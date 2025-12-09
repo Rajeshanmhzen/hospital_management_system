@@ -38,7 +38,7 @@ model User {
 
 model Patient {
   id          String   @id @default(cuid())
-  userId      String? // optional login
+  userId      String? @unique // optional login
   patientId   String   @unique
   firstName   String
   lastName    String

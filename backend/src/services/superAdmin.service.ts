@@ -62,7 +62,7 @@ export class SuperAdminService {
         subdomain:tenantData.subdomain,
         ownerName:tenantData.ownerName,
         ownerEmail:tenantData.ownerEmail,
-        dbName:dbName
+        dbUrl:dbName
       };
   
       const tenant = await this.tenantrepo.createTenant(payload);
@@ -83,6 +83,10 @@ export class SuperAdminService {
 
   async getAllTenants(){
     return await this.tenantrepo.getAllTenants();
+  };
+
+  async getTenantById(id:string) {
+    return await this.tenantrepo.findTenantById(id);
   };
 
 };

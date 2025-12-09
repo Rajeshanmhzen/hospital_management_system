@@ -128,5 +128,21 @@ export class SuperAdminController {
            }) 
         }
     };
+
+    findTenantById = async(req:Request, res:Response)=> {
+        const id = req.params.id
+        if(!id) {
+            res.status(400).json({
+                success:false,
+                message:"Id is required"
+            });
+        };
+        const findTenant = await this.superAdminService.getTenantById(id);
+        return res.status(200).json({
+            success:true,
+            message:"Tenant fetched successfully",
+            data:findTenant
+        });
+    }
     
 };

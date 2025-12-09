@@ -19,6 +19,7 @@ router.delete("/:id", superAdminController.deleteSuperAdmin);
 // Tenant Management
 router.post("/tenants", superAdminController.createTenant);
 router.get("/tenants", superAdminController.getAllTenants);
+router.get("/tenants/:id", superAdminController.findTenantById);
 router.put("/tenants/:id", superAdminController.updateTenant);
 router.delete("/tenants/:id", superAdminController.deleteTenant);
 

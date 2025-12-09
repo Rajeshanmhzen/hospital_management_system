@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
+import { generateAccessToken } from "../utils/jwt.util";
+
+interface AuthRequest extends Request {
+    user?: any;
+}
 
 export class AuthController {
     private authService = new AuthService;
@@ -7,11 +12,13 @@ export class AuthController {
     // Unified login for all user types
     login = async(req:Request, res:Response) => {
         try {
-            const {email, password} = req.body;
+            const {email, password, userType, tenantId} = req.body;
 
         const data = {
             email,
-            password
+            password,
+            userType,
+            tenantId
         };
 
         const result = await this.authService.login(data);
@@ -54,7 +61,8 @@ export class AuthController {
 
     logout = async (req: Request, res: Response) => {
         try {
-            const tokens = await cookieStore.delete("access_token")
+            res.clearCookie("access_token")
+            res.clearCookie("refresh_token")
             res.status(200).json({
                 success: true,
                 message: "Logout successful"
@@ -67,13 +75,31 @@ export class AuthController {
         }
     };
 
-    refreshToken = async (req: Request, res: Response) => {
+    refreshToken = async (req: AuthRequest, res: Response) => {
         try {
-            // Refresh token logic here
+            const refreshToken =req.cookies.refresh_token
+            const id = req.user.id
+            if(refreshToken) {
+                const accessToken = await generateAccessToken(id);
+                return res
+                    .cookie("access_token", accessToken, {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === "production",
+                        sameSite: "strict",
+                        maxAge: 7 * 24 * 60 * 60 * 1000
+                    })
+                    .status(401).json({
+                        success: false,
+                        message: "Refresh token is expired",
+                        data: { accessToken }
+                    });
+            }
+            
             res.status(200).json({
                 success: true,
                 message: "Token refreshed"
             });
+            
         } catch (err: any) {
             res.status(401).json({
                 success: false,
@@ -81,4 +107,4 @@ export class AuthController {
             });
         }
     };
-}
+};
