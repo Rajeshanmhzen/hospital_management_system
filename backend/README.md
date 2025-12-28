@@ -19,99 +19,120 @@ Express.js backend API for the MedFlow Hospital Management SaaS platform with mu
 ```
 backend/
 ├── src/
-│   ├── controllers/         # HTTP request handlers
-│   │   ├── auth.controller.ts
-│   │   ├── tenant.controller.ts
-│   │   ├── patient.controller.ts
-│   │   ├── doctor.controller.ts
-│   │   ├── appointment.controller.ts
-│   │   ├── billing.controller.ts
-│   │   └── upload.controller.ts
-│   │
-│   ├── services/            # Business logic layer
-│   │   ├── auth.service.ts
-│   │   ├── tenant.service.ts
-│   │   ├── patient.service.ts
-│   │   ├── doctor.service.ts
-│   │   ├── appointment.service.ts
-│   │   ├── notification.service.ts
-│   │   ├── email.service.ts
-│   │   └── billing.service.ts
-│   │
-│   ├── repositories/        # Data access layer
-│   │   ├── base.repository.ts
-│   │   ├── user.repository.ts
-│   │   ├── patient.repository.ts
-│   │   ├── doctor.repository.ts
-│   │   └── appointment.repository.ts
-│   │
-│   ├── routes/              # API route definitions
-│   │   ├── auth.routes.ts
-│   │   ├── patient.routes.ts
-│   │   ├── doctor.routes.ts
-│   │   ├── appointment.routes.ts
-│   │   ├── billing.routes.ts
-│   │   └── upload.routes.ts
-│   │
-│   ├── middleware/          # Express middleware
-│   │   ├── auth.middleware.ts
-│   │   ├── tenant.middleware.ts
-│   │   ├── rateLimit.middleware.ts
-│   │   ├── validation.middleware.ts
-│   │   ├── upload.middleware.ts
-│   │   └── error.middleware.ts
-│   │
-│   ├── validators/          # Input validation schemas
-│   │   ├── auth.validator.ts
-│   │   ├── patient.validator.ts
-│   │   ├── doctor.validator.ts
-│   │   └── appointment.validator.ts
-│   │
-│   ├── utils/               # Helper functions
-│   │   ├── jwt.util.ts
-│   │   ├── password.util.ts
-│   │   ├── encryption.util.ts
-│   │   ├── email.util.ts
-│   │   ├── upload.util.ts
-│   │   ├── response.util.ts
-│   │   └── audit.util.ts
-│   │
-│   ├── config/              # Configuration management
+│   ├── app.ts
+│   ├── server.ts
+│
+│   ├── config/                  # Centralized config
+│   │   ├── app.config.ts
+│   │   ├── auth.config.ts
 │   │   ├── database.config.ts
 │   │   ├── redis.config.ts
-│   │   ├── email.config.ts
-│   │   ├── upload.config.ts
-│   │   └── app.config.ts
+│   │   └── queue.config.ts
+│
+│   ├── prisma/
+│   │   ├── master/
+│   │   │   ├── schema.master.prisma
+│   │   │   ├── client.ts
+│   │   │   └── migrations/
+│   │   │
+│   │   └── tenant/
+│   │       ├── schema.tenant.prisma
+│   │       ├── client.ts
+│   │       └── migrations/
+│
+│   ├── modules/                 # DOMAIN-DRIVEN (KEY)
 │   │
-│   ├── types/               # TypeScript interfaces
-│   │   ├── auth.types.ts
-│   │   ├── tenant.types.ts
-│   │   ├── patient.types.ts
-│   │   ├── doctor.types.ts
+│   │   ├── auth/
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── auth.routes.ts
+│   │   │   ├── auth.validator.ts
+│   │   │   └── auth.types.ts
+│   │
+│   │   ├── super-admin/
+│   │   │   ├── admin.controller.ts
+│   │   │   ├── admin.service.ts
+│   │   │   ├── admin.routes.ts
+│   │   │   └── admin.validator.ts
+│   │
+│   │   ├── tenant/
+│   │   │   ├── tenant.controller.ts
+│   │   │   ├── tenant.service.ts
+│   │   │   ├── tenant.routes.ts
+│   │   │   ├── tenant.validator.ts
+│   │   │   └── tenant.provision.ts   # DB creation logic
+│   │
+│   │   ├── user/
+│   │   │   ├── user.controller.ts
+│   │   │   ├── user.service.ts
+│   │   │   ├── user.repository.ts
+│   │   │   ├── user.routes.ts
+│   │   │   └── user.validator.ts
+│   │
+│   │   ├── doctor/
+│   │   │   ├── doctor.controller.ts
+│   │   │   ├── doctor.service.ts
+│   │   │   ├── doctor.repository.ts
+│   │   │   ├── doctor.routes.ts
+│   │   │   └── doctor.validator.ts
+│   │
+│   │   ├── patient/
+│   │   │   ├── patient.controller.ts
+│   │   │   ├── patient.service.ts
+│   │   │   ├── patient.repository.ts
+│   │   │   ├── patient.routes.ts
+│   │   │   └── patient.validator.ts
+│   │
+│   │   ├── appointment/
+│   │   │   ├── appointment.controller.ts
+│   │   │   ├── appointment.service.ts
+│   │   │   ├── appointment.repository.ts
+│   │   │   ├── appointment.routes.ts
+│   │   │   └── appointment.validator.ts
+│   │
+│   │   ├── notification/
+│   │   │   ├── notification.service.ts
+│   │   │   ├── notification.worker.ts
+│   │   │   ├── notification.queue.ts
+│   │   │   └── notification.preference.ts
+│   │
+│   │   ├── billing/
+│   │   │   ├── billing.controller.ts
+│   │   │   ├── billing.service.ts
+│   │   │   └── billing.routes.ts
+│   │
+│   │   └── audit/
+│   │       ├── audit.service.ts
+│   │       └── audit.listener.ts
+│
+│   ├── middleware/
+│   │   ├── auth.middleware.ts
+│   │   ├── tenant.middleware.ts
+│   │   ├── rbac.middleware.ts
+│   │   ├── rateLimit.middleware.ts
+│   │   ├── validation.middleware.ts
+│   │   └── error.middleware.ts
+│
+│   ├── utils/
+│   │   ├── jwt.util.ts
+│   │   ├── password.util.ts
+│   │   ├── response.util.ts
+│   │   ├── logger.util.ts
+│   │   └── encryption.util.ts
+│
+│   ├── routes.ts               # Route aggregator
+│   ├── types/
+│   │   ├── express.d.ts
 │   │   └── common.types.ts
-│   │
-│   ├── jobs/                # Background job processors
-│   │   ├── email.job.ts
-│   │   ├── backup.job.ts
-│   │   └── analytics.job.ts
-│   │
-│   ├── app.ts               # Express application setup
-│   └── server.ts            # Server entry point
 │
-├── prisma/                  # Database schema and migrations
-│   ├── schema.prisma        # Prisma schema definition
-│   ├── migrations/          # Database migrations
-│   └── seed.ts              # Database seeding
+│   └── jobs/
+│       ├── email.job.ts
+│       ├── notification.job.ts
+│       └── backup.job.ts
 │
-├── uploads/                 # File upload directory
-│   ├── patients/
-│   ├── documents/
-│   └── temp/
-│
-├── dist/                    # Compiled JavaScript output
-├── .env                     # Environment variables
-├── .gitignore
-├── package.json
+├── prisma/
+├── tests/
+├── Dockerfile
 └── tsconfig.json
 ```
 

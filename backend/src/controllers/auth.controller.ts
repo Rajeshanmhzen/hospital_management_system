@@ -77,28 +77,15 @@ export class AuthController {
 
     refreshToken = async (req: AuthRequest, res: Response) => {
         try {
-            const refreshToken =req.cookies.refresh_token
-            const id = req.user.id
-            if(refreshToken) {
-                const accessToken = await generateAccessToken(id);
-                return res
-                    .cookie("access_token", accessToken, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === "production",
-                        sameSite: "strict",
-                        maxAge: 7 * 24 * 60 * 60 * 1000
-                    })
-                    .status(401).json({
-                        success: false,
-                        message: "Refresh token is expired",
-                        data: { accessToken }
-                    });
-            }
-            
-            res.status(200).json({
-                success: true,
-                message: "Token refreshed"
+           const refreshToken = req.cookies.refresh_token;
+           const id = req.user.id;
+           if(!refreshToken) {
+            return res.status(401).json({
+                success: false,
+                message: "Refresh token not found"
             });
+           }
+           
             
         } catch (err: any) {
             res.status(401).json({

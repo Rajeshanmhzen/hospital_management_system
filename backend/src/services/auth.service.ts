@@ -74,4 +74,9 @@ export class AuthService {
 
         throw new Error("Invalid credentials");
     };
+    async validateRefreshToken(data:{
+        
+    }){
+
+    }
 };

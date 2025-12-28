@@ -48,187 +48,28 @@ A modern, scalable SaaS platform for hospital management with multi-tenant archi
 - **SSL**: Let's Encrypt
 
 ## 📁 Project Architecture
-
 ```
-hospital_management_system/
-├── frontend/                    # Next.js frontend application
-│   ├── app/                     # App router pages
-│   │   ├── (auth)/              # Authentication pages
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   ├── (dashboard)/         # Protected dashboard routes
-│   │   │   ├── patients/
-│   │   │   ├── appointments/
-│   │   │   ├── doctors/
-│   │   │   └── analytics/
-│   │   ├── api/                 # API routes (if using Next.js API)
-│   │   ├── globals.css          # Global styles
-│   │   ├── layout.tsx           # Root layout
-│   │   └── page.tsx             # Home page
-│   │
-│   ├── components/              # Reusable UI components
-│   │   ├── ui/                  # shadcn/ui components
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── card.tsx
-│   │   │   └── dialog.tsx
-│   │   ├── forms/               # Form components
-│   │   │   ├── patient-form.tsx
-│   │   │   ├── appointment-form.tsx
-│   │   │   └── auth-form.tsx
-│   │   ├── charts/              # Chart components
-│   │   │   ├── analytics-chart.tsx
-│   │   │   └── appointment-chart.tsx
-│   │   └── layout/              # Layout components
-│   │       ├── header.tsx
-│   │       ├── sidebar.tsx
-│   │       └── footer.tsx
-│   │
-│   ├── lib/                     # Utility functions
-│   │   ├── utils.ts
-│   │   ├── api.ts
-│   │   └── auth.ts
-│   │
-│   ├── hooks/                   # Custom React hooks
-│   │   ├── use-auth.ts
-│   │   ├── use-patients.ts
-│   │   └── use-appointments.ts
-│   │
-│   ├── stores/                  # Zustand stores
-│   │   ├── auth-store.ts
-│   │   ├── patient-store.ts
-│   │   └── appointment-store.ts
-│   │
-│   ├── types/                   # TypeScript definitions
-│   │   ├── auth.types.ts
-│   │   ├── patient.types.ts
-│   │   └── common.types.ts
-│   │
-│   ├── public/                  # Static assets
-│   │   ├── images/
-│   │   └── icons/
-│   │
-│   ├── .env.local               # Environment variables
-│   ├── .gitignore
-│   ├── next.config.ts
-│   ├── package.json
-│   ├── tailwind.config.ts
-│   └── tsconfig.json
+hospital-management-system/
 │
-├── backend/                     # Express.js backend API
+├── apps/
+│   ├── public-web/              # Next.js (public site)
+│   ├── dashboard/               # React SPA (tenant + admin)
+│   └── super-admin/             # Optional separate admin UI
+│
+├── backend/
 │   ├── src/
-│   │   ├── controllers/         # HTTP request handlers
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── tenant.controller.ts
-│   │   │   ├── patient.controller.ts
-│   │   │   ├── doctor.controller.ts
-│   │   │   ├── appointment.controller.ts
-│   │   │   ├── billing.controller.ts
-│   │   │   └── upload.controller.ts
-│   │   │
-│   │   ├── services/            # Business logic layer
-│   │   │   ├── auth.service.ts
-│   │   │   ├── tenant.service.ts
-│   │   │   ├── patient.service.ts
-│   │   │   ├── doctor.service.ts
-│   │   │   ├── appointment.service.ts
-│   │   │   ├── notification.service.ts
-│   │   │   ├── email.service.ts
-│   │   │   └── billing.service.ts
-│   │   │
-│   │   ├── repositories/        # Data access layer
-│   │   │   ├── base.repository.ts
-│   │   │   ├── user.repository.ts
-│   │   │   ├── patient.repository.ts
-│   │   │   ├── doctor.repository.ts
-│   │   │   └── appointment.repository.ts
-│   │   │
-│   │   ├── routes/              # API route definitions
-│   │   │   ├── auth.routes.ts
-│   │   │   ├── patient.routes.ts
-│   │   │   ├── doctor.routes.ts
-│   │   │   ├── appointment.routes.ts
-│   │   │   ├── billing.routes.ts
-│   │   │   └── upload.routes.ts
-│   │   │
-│   │   ├── middleware/          # Express middleware
-│   │   │   ├── auth.middleware.ts
-│   │   │   ├── tenant.middleware.ts
-│   │   │   ├── rateLimit.middleware.ts
-│   │   │   ├── validation.middleware.ts
-│   │   │   ├── upload.middleware.ts
-│   │   │   └── error.middleware.ts
-│   │   │
-│   │   ├── validators/          # Input validation schemas
-│   │   │   ├── auth.validator.ts
-│   │   │   ├── patient.validator.ts
-│   │   │   ├── doctor.validator.ts
-│   │   │   └── appointment.validator.ts
-│   │   │
-│   │   ├── utils/               # Helper functions
-│   │   │   ├── jwt.util.ts
-│   │   │   ├── password.util.ts
-│   │   │   ├── encryption.util.ts
-│   │   │   ├── email.util.ts
-│   │   │   ├── upload.util.ts
-│   │   │   ├── response.util.ts
-│   │   │   └── audit.util.ts
-│   │   │
-│   │   ├── config/              # Configuration management
-│   │   │   ├── database.config.ts
-│   │   │   ├── redis.config.ts
-│   │   │   ├── email.config.ts
-│   │   │   ├── upload.config.ts
-│   │   │   └── app.config.ts
-│   │   │
-│   │   ├── types/               # TypeScript interfaces
-│   │   │   ├── auth.types.ts
-│   │   │   ├── tenant.types.ts
-│   │   │   ├── patient.types.ts
-│   │   │   ├── doctor.types.ts
-│   │   │   └── common.types.ts
-│   │   │
-│   │   ├── jobs/                # Background job processors
-│   │   │   ├── email.job.ts
-│   │   │   ├── backup.job.ts
-│   │   │   └── analytics.job.ts
-│   │   │
-│   │   ├── app.ts               # Express application setup
-│   │   └── server.ts            # Server entry point
-│   │
-│   ├── prisma/                  # Database schema and migrations
-│   │   ├── schema.prisma        # Prisma schema definition
-│   │   ├── migrations/          # Database migrations
-│   │   └── seed.ts              # Database seeding
-│   │
-│   ├── uploads/                 # File upload directory
-│   │   ├── patients/
-│   │   ├── documents/
-│   │   └── temp/
-│   │
-│   ├── dist/                    # Compiled JavaScript output
-│   ├── .env                     # Environment variables
-│   ├── .gitignore
-│   ├── package.json
-│   └── tsconfig.json
+│   ├── prisma/
+│   ├── tests/
+│   └── docs/
 │
-├── docker/                      # Docker configuration
-│   ├── Dockerfile.frontend
-│   ├── Dockerfile.backend
-│   └── docker-compose.yml
+├── infra/                        # Docker, Nginx, CI/CD
 │
-├── docs/                        # Documentation
-│   ├── api/                     # API documentation
-│   ├── deployment/              # Deployment guides
-│   └── architecture/            # Architecture decisions
+├── shared/                      # Shared types & utils
 │
-├── scripts/                     # Build and deployment scripts
-│   ├── setup.sh
-│   ├── deploy.sh
-│   └── backup.sh
-│
-├── .gitignore                   # Global gitignore
-└── README.md                    # Project documentation
+├── .env.example
+├── docker-compose.yml
+├── README.md
+└── package.json
 ```
 
 ## 🛠️ Development Setup
