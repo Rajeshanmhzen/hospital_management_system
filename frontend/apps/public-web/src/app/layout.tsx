@@ -7,6 +7,7 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import 'material-symbols/outlined.css';
 import { Header } from '../components/layout';
+import Footer from '../components/layout/Footer';
 
 const theme = createTheme({
   colors: {
@@ -53,6 +54,7 @@ export default function RootLayout({
           <Notifications />
           <Header />
           {children}
+          <Footer />
         </MantineProvider>
       </body>
     </html>
