@@ -5,6 +5,8 @@ import { MantineProvider, createTheme, ColorSchemeScript } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import 'material-symbols/outlined.css';
+import { Header } from '../components/layout';
 
 const theme = createTheme({
   colors: {
@@ -42,13 +44,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <ColorSchemeScript defaultColorScheme="auto" />
+        <ColorSchemeScript defaultColorScheme="light" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <MantineProvider theme={theme} defaultColorScheme="auto">
+        <MantineProvider theme={theme} defaultColorScheme="light">
           <Notifications />
+          <Header />
           {children}
         </MantineProvider>
       </body>

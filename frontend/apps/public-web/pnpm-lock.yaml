@@ -23,6 +23,9 @@ importers:
       '@tabler/icons-react':
         specifier: ^3.36.1
         version: 3.36.1(react@19.2.3)
+      material-symbols:
+        specifier: ^0.40.2
+        version: 0.40.2
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -125,6 +128,9 @@ packages:
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
+
+  material-symbols@0.40.2:
+    resolution: {integrity: sha512-QUJF1HztvcpP8pXHPPNESK05Thq/Zy8ub17T2xBDf4+gqx4KBs353lKHuVzE/eCYOtiB9JBlFOU7cjAI6vVMTQ==}
 
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -346,6 +352,8 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  material-symbols@0.40.2: {}
 
   object-assign@4.1.1: {}
 

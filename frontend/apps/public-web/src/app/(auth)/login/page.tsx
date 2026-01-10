@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { PasswordInput,TextInput,Checkbox,Text,Title, Button, Paper } from '@mantine/core';
+import { IconLogin } from '@tabler/icons-react';
 
 const page = () => {
     const [data,setData] = useState({
@@ -38,7 +39,13 @@ const page = () => {
     />
     <a  href="/forgot-password" style={{ color: 'var(--mantine-color-blue-3)' }}>Forgot password?</a>
     </div>
-          <Button fullWidth color="blue">Login to Dashboard</Button>
+          <Button 
+            fullWidth 
+            color="blue" 
+            leftSection={<IconLogin size={16} />}
+          >
+            Login to Dashboard
+          </Button>
           <hr className="my-5"/>
     <Text> New to MedFlow? <a
         href="/register" style={{ color: 'var(--mantine-color-blue-3)' }}>Register</a>
