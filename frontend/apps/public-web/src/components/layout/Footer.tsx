@@ -98,7 +98,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className={`mt-12 pt-8 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-          <Text className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <Text className={`text-sm  text-center ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             © 2024 MedFlow Inc. All rights reserved.
           </Text>
         </div>
