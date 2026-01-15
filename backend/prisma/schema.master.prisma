@@ -10,72 +10,98 @@ datasource db {
 
 // Super Admins
 model superAdmin {
-  id        String  @id @default(uuid())
-  email     String  @unique
+  id        String   @id @default(uuid())
+  email     String   @unique
   password  String
   name      String
-  isActive  Boolean @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Tenants (Hospitals)
-
 model Tenant {
-  id           String   @id @default(uuid())
-  name         String
-  subdomain    String   @unique
+  id            String         @id @default(uuid())
+  name          String
+  subdomain     String         @unique
   ownerName     String
   ownerEmail    String
   ownerPhone    String?
   dbUrl         String
   logo          String?
-  status        TenantStatus @default(PENDING)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  status        TenantStatus   @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   subscriptions Subscription[]
 
   @@map("tenants")
 }
 
-// Subscription
+// Pricing Plans (Managed by Super Admin)
+model PricingPlan {
+  id            String         @id @default(uuid())
+  name          String         @unique
+  description   String
+  monthlyPrice  Decimal        @db.Decimal(10,2)
+  yearlyPrice   Decimal        @db.Decimal(10,2)
+  maxUsers      Int
+  maxPatients   Int
+  features      Json           // Array of feature strings
+  isActive      Boolean        @default(true)
+  isPublic      Boolean        @default(true)  // Show on public pricing page
+  displayOrder  Int            @default(0)     // For sorting plans
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
 
+  @@map("pricing_plans")
+}
+
+// Subscription
 model Subscription {
-  id        String   @id @default(uuid())
-  tenantId  String
-  planName  String
-  planPrice Decimal  @db.Decimal(10,2)
-  billingCycle String
-  maxUsers  Int
-  maxPatients Int
-  features  Json
-  status    SubscriptionStatus @default(ACTIVE)
-  startDate DateTime
-  endDate   DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tenant    Tenant @relation(fields: [tenantId], references: [id])
-  payments  Payment[]
+  id           String             @id @default(uuid())
+  tenantId     String             @unique  // One subscription per tenant
+  planId       String
+  planName     String
+  planPrice    Decimal            @db.Decimal(10,2)
+  billingCycle String             // 'monthly' | 'yearly'
+  maxUsers     Int
+  maxPatients  Int
+  features     Json
+  status       SubscriptionStatus @default(ACTIVE)
+  startDate    DateTime
+  endDate      DateTime
+  autoRenew    Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  tenant       Tenant             @relation(fields: [tenantId], references: [id])
+  plan         PricingPlan        @relation(fields: [planId], references: [id])
+  payments     Payment[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("subscriptions")
 }
 
 // Payment
-
 model Payment {
-  id             String @id @default(uuid())
+  id             String        @id @default(uuid())
   subscriptionId String
-  amount        Decimal @db.Decimal(10,2)
-  currency      String @default("USD")
-  status        PaymentStatus @default(PENDING)
-  transactionId String?
-  paidAt        DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
-  subscription  Subscription @relation(fields: [subscriptionId], references: [id])
+  amount         Decimal       @db.Decimal(10,2)
+  currency       String        @default("USD")
+  status         PaymentStatus @default(PENDING)
+  transactionId  String?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
+
+  @@map("payments")
 }
 
 // Enums
-
 enum TenantStatus {
+  PENDING
   ACTIVE
   INACTIVE
   SUSPENDED
@@ -86,6 +112,7 @@ enum SubscriptionStatus {
   INACTIVE
   CANCELLED
   EXPIRED
+  TRIAL
 }
 
 enum PaymentStatus {
@@ -94,11 +121,3 @@ enum PaymentStatus {
   FAILED
   REFUNDED
 }
-
-enum TenantStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
-
