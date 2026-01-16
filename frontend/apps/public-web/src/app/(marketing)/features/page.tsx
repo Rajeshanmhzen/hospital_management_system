@@ -35,7 +35,7 @@ const page = () => {
 
       {/* feature section */}
 
-      <div className=" mt-15 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=" mt-15 grid sm:grid-cols-2  lg:grid-cols-3 gap-6">
                      { 
                      featureContent.map((feature, index)=>(
                           <FeatureCard
