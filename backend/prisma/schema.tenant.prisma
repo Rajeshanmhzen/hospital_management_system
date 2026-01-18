@@ -18,7 +18,7 @@ model User {
   lastName    String
   phone       String?
   avatar      String?
-  role        UserRole @default(RECEPTIONIST)
+  role        UserRoleMapping[]
   isActive    Boolean  @default(true)
   lastLoginAt DateTime?
   createdAt   DateTime @default(now())
@@ -32,6 +32,16 @@ model User {
   passwordResets PasswordReset[]
   emailVerifications EmailVerification[]
   refreshTokens RefreshToken[]
+}
+
+model UserRoleMapping{
+  id      String  @id @default(cuid())
+  userId  String
+  role    UserRole
+
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([userId, role])
 }
 
 // Patient
