@@ -129,7 +129,7 @@ backend/
 │       ├── email.job.ts
 │       ├── notification.job.ts
 │       └── backup.job.ts
-│
+│── scripts/
 ├── prisma/
 ├── tests/
 ├── Dockerfile

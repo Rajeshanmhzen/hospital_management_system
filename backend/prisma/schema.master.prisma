@@ -27,7 +27,7 @@ model Tenant {
   ownerName     String
   ownerEmail    String
   ownerPhone    String?
-  dbUrl         String
+  dbIdentifier  String  @unique
   logo          String?
   status        TenantStatus   @default(PENDING)
   createdAt     DateTime       @default(now())
