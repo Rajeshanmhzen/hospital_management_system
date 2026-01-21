@@ -9,51 +9,49 @@ interface AuthRequest extends Request {
 export class AuthController {
     private authService = new AuthService;
 
-    // Unified login for all user types
-    login = async(req:Request, res:Response) => {
+    login = async (req: Request, res: Response) => {
         try {
-            const {email, password, userType, tenantId} = req.body;
+            const { email, password, userType, tenantId } = req.body;
 
-        const data = {
-            email,
-            password,
-            userType,
-            tenantId
-        };
+            const data = {
+                email,
+                password,
+                userType,
+                tenantId
+            };
 
-        const result = await this.authService.login(data);
+            const result = await this.authService.login(data);
 
-        res
-        .cookie("access_token", result.token.accessToken,{ 
-            httpOnly:true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
-        .cookie("refresh_token",result.token.refreshToken,{ 
-            httpOnly:true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
-        .status(200).json({
-            success:true,
-            message:"Login successful",
-            data:{
-                user:result.user,
-                token:result.token
-            }
-        })
-        } catch (err:any) {
+            res
+                .cookie("access_token", result.token.accessToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "strict",
+                    maxAge: 7 * 24 * 60 * 60 * 1000
+                })
+                .cookie("refresh_token", result.token.refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "strict",
+                    maxAge: 7 * 24 * 60 * 60 * 1000
+                })
+                .status(200).json({
+                    success: true,
+                    message: "Login successful",
+                    data: {
+                        user: result.user,
+                        token: result.token
+                    }
+                })
+        } catch (err: any) {
             res.status(401).json({
-                success:false, 
-                message:err.message
+                success: false,
+                message: err.message
             });
         }
-        
+
     };
 
-    // Specific method for super admin (backward compatibility)
     superAdminLogin = async (req: Request, res: Response) => {
         req.body.userType = 'SUPER_ADMIN';
         return this.login(req, res);
@@ -77,16 +75,32 @@ export class AuthController {
 
     refreshToken = async (req: AuthRequest, res: Response) => {
         try {
-           const refreshToken = req.cookies.refresh_token;
-           const id = req.user.id;
-           if(!refreshToken) {
-            return res.status(401).json({
-                success: false,
-                message: "Refresh token not found"
-            });
-           }
-           
-            
+            const refreshToken = req.cookies.refresh_token;
+
+            if (!refreshToken) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Please login!"
+                });
+            }
+
+            const result = await this.authService.refreshAccessToken(refreshToken);
+
+            res
+                .cookie("access_token", result.accessToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "strict",
+                    maxAge: 15 * 60 * 1000
+                })
+                .status(200).json({
+                    success: true,
+                    message: "Token refreshed successfully",
+                    data: {
+                        accessToken: result.accessToken,
+                        user: result.user
+                    }
+                });
         } catch (err: any) {
             res.status(401).json({
                 success: false,

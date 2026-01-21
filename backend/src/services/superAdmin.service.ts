@@ -94,6 +94,19 @@ export class SuperAdminService {
   async deleteTenant(id: string) {
     const tenant = await this.tenantrepo.findTenantById(id);
     if (!tenant) throw new Error("Tenant not found!");
+
+    const dbUrlMatch = tenant.dbUrl.match(/\/([^/?]+)(?:\?|$)/);
+    const dbName = dbUrlMatch ? dbUrlMatch[1] : null;
+
+    if (dbName) {
+      try {
+        await dropTenantDatabase(dbName);
+      } catch (error: any) {
+        console.error(`Failed to drop database ${dbName}:`, error.message);
+        throw error;
+      }
+    }
+
     return await this.tenantrepo.deleteTenant(id);
   };
 
