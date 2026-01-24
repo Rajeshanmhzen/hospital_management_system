@@ -339,3 +339,4 @@ generateAccessToken = async(payload:any) => {
 ✅ **"Please login!" message** - Clear indication when re-authentication needed  
 ✅ **Database-backed tokens** - Refresh tokens stored for tenant users  
 ✅ **Secure implementation** - HttpOnly, secure cookies with proper validation
+![alt text](image.png)

@@ -23,4 +23,7 @@ router.get("/tenants/:id", superAdminController.findTenantById);
 router.put("/tenants/:id", superAdminController.updateTenant);
 router.delete("/tenants/:id", superAdminController.deleteTenant);
 
+// Dashboard Stats
+router.get("/stats", superAdminController.getDashboardStats);
+
 export default router;

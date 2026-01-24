@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
-import { generateAccessToken } from "../utils/jwt.util";
 
 interface AuthRequest extends Request {
     user?: any;

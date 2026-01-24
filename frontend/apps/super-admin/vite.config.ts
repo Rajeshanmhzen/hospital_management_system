@@ -6,5 +6,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3001
-  }
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom', '@mantine/core', '@mantine/hooks'],
+  },
 })

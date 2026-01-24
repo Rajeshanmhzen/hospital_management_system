@@ -59,7 +59,7 @@ export function migrateTenantDatabase(databaseUrl: string): void {
       stdio: "inherit",
       env: {
         ...process.env,
-        DATABASE_URL: databaseUrl,
+        TENANT_DATABASE_URL: databaseUrl,
       },
     }
   );

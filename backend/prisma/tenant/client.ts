@@ -1,4 +1,4 @@
-import { PrismaClient as TenantPrismaClientOriginal } from ".prisma/tenant-client";
+import { PrismaClient as TenantPrismaClientOriginal } from "../../node_modules/.prisma/tenant-client";
 
 declare global {
   var tenantPrisma: TenantPrismaClientOriginal | undefined;

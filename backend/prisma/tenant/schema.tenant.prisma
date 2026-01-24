@@ -1,11 +1,23 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/tenant-client"
+  output   = "../../node_modules/.prisma/tenant-client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("TENANT_DATABASE_URL")
+}
+
+model HospitalProfile {
+  id          String   @id @default(cuid())
+  name        String   // Hospital Name
+  logo        String?
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // User (doctors, nurses, staff)

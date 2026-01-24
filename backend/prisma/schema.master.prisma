@@ -8,7 +8,6 @@ datasource db {
   url      = env("MASTER_DATABASE_URL")
 }
 
-// Super Admins
 model superAdmin {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -19,37 +18,35 @@ model superAdmin {
   updatedAt DateTime @updatedAt
 }
 
-// Tenants (Hospitals)
 model Tenant {
-  id            String         @id @default(uuid())
+  id            String        @id @default(uuid())
   name          String
-  subdomain     String         @unique
+  subdomain     String        @unique
   ownerName     String
   ownerEmail    String
   ownerPhone    String?
-  dbIdentifier  String  @unique
+  dbUrl         String
   logo          String?
-  status        TenantStatus   @default(PENDING)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  subscriptions Subscription[]
+  status        TenantStatus  @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  subscriptions Subscription?
 
   @@map("tenants")
 }
 
-// Pricing Plans (Managed by Super Admin)
 model PricingPlan {
   id            String         @id @default(uuid())
   name          String         @unique
   description   String
-  monthlyPrice  Decimal        @db.Decimal(10,2)
-  yearlyPrice   Decimal        @db.Decimal(10,2)
+  monthlyPrice  Decimal        @db.Decimal(10, 2)
+  yearlyPrice   Decimal        @db.Decimal(10, 2)
   maxUsers      Int
   maxPatients   Int
-  features      Json           // Array of feature strings
+  features      Json
   isActive      Boolean        @default(true)
-  isPublic      Boolean        @default(true)  // Show on public pricing page
-  displayOrder  Int            @default(0)     // For sorting plans
+  isPublic      Boolean        @default(true)
+  displayOrder  Int            @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   subscriptions Subscription[]
@@ -57,14 +54,13 @@ model PricingPlan {
   @@map("pricing_plans")
 }
 
-// Subscription
 model Subscription {
   id           String             @id @default(uuid())
-  tenantId     String             @unique  // One subscription per tenant
+  tenantId     String             @unique
   planId       String
   planName     String
-  planPrice    Decimal            @db.Decimal(10,2)
-  billingCycle String             // 'monthly' | 'yearly'
+  planPrice    Decimal            @db.Decimal(10, 2)
+  billingCycle String
   maxUsers     Int
   maxPatients  Int
   features     Json
@@ -74,20 +70,19 @@ model Subscription {
   autoRenew    Boolean            @default(true)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
-  tenant       Tenant             @relation(fields: [tenantId], references: [id])
-  plan         PricingPlan        @relation(fields: [planId], references: [id])
   payments     Payment[]
+  plan         PricingPlan        @relation(fields: [planId], references: [id])
+  tenant       Tenant             @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([status])
   @@map("subscriptions")
 }
 
-// Payment
 model Payment {
   id             String        @id @default(uuid())
   subscriptionId String
-  amount         Decimal       @db.Decimal(10,2)
+  amount         Decimal       @db.Decimal(10, 2)
   currency       String        @default("USD")
   status         PaymentStatus @default(PENDING)
   transactionId  String?
@@ -99,7 +94,6 @@ model Payment {
   @@map("payments")
 }
 
-// Enums
 enum TenantStatus {
   PENDING
   ACTIVE

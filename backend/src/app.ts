@@ -10,8 +10,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: [process.env.FRONTEND_URL, 'http://localhost:3000'],
-    credentials:true,
+    origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+    credentials: true,
     exposeHeaders: ['Access-Control-Allow-Credentials'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
