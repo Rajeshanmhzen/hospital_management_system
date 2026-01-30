@@ -18,7 +18,7 @@ export class SuperAdminService {
   private superAdminRepo = new SuperAdminRepository;
   private tenantrepo = new TenantRepository;
 
-  async createSuperAdmin(data: {
+  async addSuperAdmin(data: {
     email: string;
     password: string;
     name: string;
@@ -27,25 +27,25 @@ export class SuperAdminService {
     if (existing) throw new Error("Super admin already exists!");
 
     const hashedPassword = await hashPassword(data.password);
-    return await this.superAdminRepo.createSuperAdmin({
+    return await this.superAdminRepo.addSuperAdmin({
       ...data,
       password: hashedPassword
     });
   };
 
   async deleteSuperAdmin(id: string) {
-    const superAdmin = await this.superAdminRepo.findById(id);
+    const superAdmin = await this.superAdminRepo.detailSuperAdmin(id);
     if (!superAdmin) throw new Error("Super admin not found!");
     return await this.superAdminRepo.deleteSuperAdmin(id);
   };
 
-  async updateSuperAdmin(id: string, data: any) {
-    const superAdmin = await this.superAdminRepo.findById(id);
+  async editSuperAdmin(id: string, data: any) {
+    const superAdmin = await this.superAdminRepo.detailSuperAdmin(id);
     if (!superAdmin) throw new Error("Super admin not found!");
-    return await this.superAdminRepo.updateSuperAdmin(id, data);
+    return await this.superAdminRepo.editSuperAdmin(id, data);
   };
 
-  async createTenant(tenantData: {
+  async addTenant(tenantData: {
     name: string;
     subdomain: string;
     ownerName: string;
@@ -53,25 +53,18 @@ export class SuperAdminService {
     password?: string;
   }) {
     const { name, subdomain, ownerName, ownerEmail, password } = tenantData;
-    const existinguser = await this.tenantrepo.findByEmail(ownerEmail);
+    const existinguser = await this.tenantrepo.detailTenantByEmail(ownerEmail);
     if (existinguser) throw new Error("Tenant already exists!");
-
-    const existingBySubdomain = await this.tenantrepo.findTenantBySubdomain(tenantData.subdomain);
+    const existingBySubdomain = await this.tenantrepo.detailTenantBySubdomain(tenantData.subdomain);
     if (existingBySubdomain) throw new Error("Subdomain already exists!");
-
     const sanitizeName = santizeDbName(tenantData.subdomain);
     const dbName = `medflow_tenant_${sanitizeName}`;
-
-    // Use regular connection string pattern - ensure password encoding if needed
     const tenantDbUrl = `postgresql://postgres:MakeYourOwn%40123%23@localhost:5432/${dbName}`;
     let dbCreated = false;
-
     try {
       await createTenantDatabase(dbName);
       dbCreated = true;
-
       await migrateTenantDatabase(tenantDbUrl);
-
       const payload = {
         name: name,
         subdomain: subdomain,
@@ -79,21 +72,15 @@ export class SuperAdminService {
         ownerEmail: ownerEmail,
         dbUrl: tenantDbUrl
       };
-
-      const tenant = await this.tenantrepo.createTenant(payload);
-
-      // Create initial Admin user in the tenant database
+      const tenant = await this.tenantrepo.addTenant(payload);
       const tenantPrisma = new TenantPrismaClient({
         datasources: { db: { url: tenantDbUrl } },
       }) as any;
-
       try {
         const hashedPassword = await hashPassword(password || "TempPassword@123");
-
         const nameParts = ownerName.trim().split(/\s+/);
         const firstName = nameParts[0] || "Admin";
         const lastName = nameParts.slice(1).join(" ") || "User";
-
         await tenantPrisma.user.create({
           data: {
             email: ownerEmail,
@@ -107,8 +94,6 @@ export class SuperAdminService {
             }
           }
         });
-
-        // Seed Hospital Profile
         await tenantPrisma.hospitalProfile.create({
           data: {
             name: name,
@@ -118,7 +103,6 @@ export class SuperAdminService {
       } finally {
         await tenantPrisma.$disconnect();
       }
-
       return tenant;
     } catch (error) {
       if (dbCreated) {
@@ -128,20 +112,17 @@ export class SuperAdminService {
     };
   };
 
-  async updateTenant(id: string, data: any) {
-    const tenant = await this.tenantrepo.findTenantById(id);
+  async editTenant(id: string, data: any) {
+    const tenant = await this.tenantrepo.detailTenant(id);
     if (!tenant) throw new Error("Tenant not found!");
-    return await this.tenantrepo.updateTenant(id, data);
+    return await this.tenantrepo.editTenant(id, data);
   };
 
   async deleteTenant(id: string) {
-    const tenant = await this.tenantrepo.findTenantById(id);
+    const tenant = await this.tenantrepo.detailTenant(id);
     if (!tenant) throw new Error("Tenant not found!");
-
-    // Extract dbName from dbUrl
     const dbUrlMatch = tenant.dbUrl.match(/\/([^/?]+)(?:\?|$)/);
     const dbName = dbUrlMatch ? dbUrlMatch[1] : null;
-
     if (dbName) {
       try {
         await dropTenantDatabase(dbName);
@@ -150,20 +131,18 @@ export class SuperAdminService {
         throw error;
       }
     }
-
     return await this.tenantrepo.deleteTenant(id);
   };
 
-  async getAllTenants() {
-    return await this.tenantrepo.getAllTenants();
+  async listTenant() {
+    return await this.tenantrepo.listTenant();
   };
-
-  async getTenantById(id: string) {
-    return await this.tenantrepo.findTenantById(id);
+  async detailTenant(id: string) {
+    return await this.tenantrepo.detailTenant(id);
   };
 
   async getDashboardStats() {
-    const totalTenants = await this.tenantrepo.getAllTenants();
+    const totalTenants = await this.tenantrepo.listTenant();
     const activeTenants = totalTenants.filter(t => t.status === 'ACTIVE');
     const pendingTenants = totalTenants.filter(t => t.status === 'PENDING');
 

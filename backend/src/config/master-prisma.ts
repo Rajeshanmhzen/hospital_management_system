@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../node_modules/.prisma/master-client';
+import { PrismaClient } from '@prisma/master-client';
 
 export const masterPrisma = new PrismaClient();
 

@@ -4,14 +4,14 @@ import { SuperAdminService } from '../services/superAdmin.service';
 export class SuperAdminController {
     private superAdminService = new SuperAdminService();
 
-    createSuperAdmin = async (req: Request, res: Response) => {
+    addSuperAdmin = async (req: Request, res: Response) => {
         try {
             const data = req.body;
-            const result = await this.superAdminService.createSuperAdmin(data);
+            const result = await this.superAdminService.addSuperAdmin(data);
 
             res.status(201).json({
                 success: true,
-                message: "Super admin created successfully",
+                message: "Super admin added successfully",
                 data: result
             })
         } catch (err: any) {
@@ -39,15 +39,15 @@ export class SuperAdminController {
         };
     };
 
-    updateSuperAdmin = async (req: Request, res: Response) => {
+    editSuperAdmin = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;
             const data = req.body;
-            const result = await this.superAdminService.updateSuperAdmin(id, data);
+            const result = await this.superAdminService.editSuperAdmin(id, data);
 
             res.status(200).json({
                 success: true,
-                message: "Super admin updated successfully",
+                message: "Super admin edited successfully",
                 data: result
             });
         } catch (err: any) {
@@ -58,14 +58,14 @@ export class SuperAdminController {
         };
     };
 
-    createTenant = async (req: Request, res: Response) => {
+    addTenant = async (req: Request, res: Response) => {
         try {
             const tenantData = req.body;
 
-            const result = await this.superAdminService.createTenant(tenantData);
+            const result = await this.superAdminService.addTenant(tenantData);
             res.status(201).json({
                 success: true,
-                message: "Tenant created successfully",
+                message: "Tenant added successfully",
                 data: result
             });
         } catch (err: any) {
@@ -76,12 +76,12 @@ export class SuperAdminController {
         };
     };
 
-    getAllTenants = async (req: Request, res: Response) => {
+    listTenant = async (req: Request, res: Response) => {
         try {
-            const result = await this.superAdminService.getAllTenants();
+            const result = await this.superAdminService.listTenant();
             res.status(200).json({
                 success: true,
-                message: "Tenants fetched successfully",
+                message: "Tenants listed successfully",
                 data: result
             });
         } catch (err: any) {
@@ -92,15 +92,15 @@ export class SuperAdminController {
         };
     };
 
-    updateTenant = async (req: Request, res: Response) => {
+    editTenant = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;
             const data = req.body;
 
-            const result = await this.superAdminService.updateTenant(id, data);
+            const result = await this.superAdminService.editTenant(id, data);
             res.status(200).json({
                 success: true,
-                message: "Tenant updated successfully",
+                message: "Tenant edited successfully",
                 data: result
             });
         } catch (err: any) {
@@ -129,7 +129,7 @@ export class SuperAdminController {
         }
     };
 
-    findTenantById = async (req: Request, res: Response) => {
+    detailTenant = async (req: Request, res: Response) => {
         const id = req.params.id
         if (!id) {
             res.status(400).json({
@@ -137,10 +137,10 @@ export class SuperAdminController {
                 message: "Id is required"
             });
         };
-        const findTenant = await this.superAdminService.getTenantById(id);
+        const findTenant = await this.superAdminService.detailTenant(id);
         return res.status(200).json({
             success: true,
-            message: "Tenant fetched successfully",
+            message: "Tenant detailed successfully",
             data: findTenant
         });
     }

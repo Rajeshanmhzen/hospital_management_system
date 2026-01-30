@@ -57,6 +57,12 @@ importers:
         specifier: ^4.1.13
         version: 4.1.13
     devDependencies:
+      '@prisma/master-client':
+        specifier: link:node_modules/.prisma/master-client
+        version: link:node_modules/.prisma/master-client
+      '@prisma/tenant-client':
+        specifier: link:node_modules/.prisma/tenant-client
+        version: link:node_modules/.prisma/tenant-client
       '@types/bcrypt':
         specifier: ^6.0.0
         version: 6.0.0

@@ -30,12 +30,12 @@ export class AuthService {
 
         // If tenantId is provided, just check that specific tenant
         if (targetTenantId) {
-            targetTenant = await this.tenantRepo.findTenantById(targetTenantId);
+            targetTenant = await this.tenantRepo.detailTenant(targetTenantId);
             if (!targetTenant) throw new Error("Invalid tenant");
         }
         // If no tenantId, search ALL tenants for this user (Fallback for Email-Only Login)
         else {
-            const allTenants = await this.tenantRepo.getAllTenants();
+            const allTenants = await this.tenantRepo.listTenant();
 
             // Iterate through tenants to find the user
             for (const tenant of allTenants) {
@@ -102,7 +102,7 @@ export class AuthService {
     async logout(refreshToken: string, tenantId?: string) {
         if (!tenantId) return; // Super admin logout handled by clearing cookies in controller
 
-        const tenant = await this.tenantRepo.findTenantById(tenantId);
+        const tenant = await this.tenantRepo.detailTenant(tenantId);
         if (!tenant) return;
 
         const tenantPrisma = new TenantPrismaClient({
@@ -129,7 +129,7 @@ export class AuthService {
             }
 
             if (decoded.tenantId) {
-                const tenant = await this.tenantRepo.findTenantById(decoded.tenantId);
+                const tenant = await this.tenantRepo.detailTenant(decoded.tenantId);
                 if (!tenant) throw new Error("Invalid tenant");
 
                 const tenantPrisma = new TenantPrismaClient({

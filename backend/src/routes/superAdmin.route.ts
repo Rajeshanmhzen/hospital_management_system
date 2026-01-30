@@ -6,22 +6,22 @@ const router = Router();
 const superAdminController = new SuperAdminController();
 
 // Public route for initial SuperAdmin creation
-router.post("/", superAdminController.createSuperAdmin);
+router.post("/add", superAdminController.addSuperAdmin);
 
 // Protected routes - require SuperAdmin authentication
 router.use(authMiddleware('SUPER_ADMIN'));
 
 
 // SuperAdmin Management
-router.put("/:id", superAdminController.updateSuperAdmin);
-router.delete("/:id", superAdminController.deleteSuperAdmin);
+router.put("/edit/:id", superAdminController.editSuperAdmin);
+router.delete("/delete/:id", superAdminController.deleteSuperAdmin);
 
 // Tenant Management
-router.post("/tenants", superAdminController.createTenant);
-router.get("/tenants", superAdminController.getAllTenants);
-router.get("/tenants/:id", superAdminController.findTenantById);
-router.put("/tenants/:id", superAdminController.updateTenant);
-router.delete("/tenants/:id", superAdminController.deleteTenant);
+router.post("/tenants/add", superAdminController.addTenant);
+router.get("/tenants/list", superAdminController.listTenant);
+router.get("/tenants/detail/:id", superAdminController.detailTenant);
+router.put("/tenants/edit/:id", superAdminController.editTenant);
+router.delete("/tenants/delete/:id", superAdminController.deleteTenant);
 
 // Dashboard Stats
 router.get("/stats", superAdminController.getDashboardStats);
