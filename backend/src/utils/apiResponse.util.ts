@@ -5,13 +5,13 @@ interface SuccessResponse<T> {
     message: string;
     data: T;
     meta?: any;
-}
+};
 
 interface ErrorResponse {
     success: false;
     message: string;
     errors?: any;
-}
+};
 
 export const sendSuccess = <T>(
     res: Response,
@@ -28,6 +28,7 @@ export const sendSuccess = <T>(
     };
     return res.status(statusCode).json(response);
 };
+
 
 export const sendError = (
     res: Response,
