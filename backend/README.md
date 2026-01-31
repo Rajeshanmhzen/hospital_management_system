@@ -19,121 +19,18 @@ Express.js backend API for the MedFlow Hospital Management SaaS platform with mu
 ```
 backend/
 ├── src/
-│   ├── app.ts
-│   ├── server.ts
-│
-│   ├── config/                  # Centralized config
-│   │   ├── app.config.ts
-│   │   ├── auth.config.ts
-│   │   ├── database.config.ts
-│   │   ├── redis.config.ts
-│   │   └── queue.config.ts
-│
-│   ├── prisma/
-│   │   ├── master/
-│   │   │   ├── schema.master.prisma
-│   │   │   ├── client.ts
-│   │   │   └── migrations/
-│   │   │
-│   │   └── tenant/
-│   │       ├── schema.tenant.prisma
-│   │       ├── client.ts
-│   │       └── migrations/
-│
-│   ├── modules/                 # DOMAIN-DRIVEN (KEY)
-│   │
-│   │   ├── auth/
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── auth.service.ts
-│   │   │   ├── auth.routes.ts
-│   │   │   ├── auth.validator.ts
-│   │   │   └── auth.types.ts
-│   │
-│   │   ├── super-admin/
-│   │   │   ├── admin.controller.ts
-│   │   │   ├── admin.service.ts
-│   │   │   ├── admin.routes.ts
-│   │   │   └── admin.validator.ts
-│   │
-│   │   ├── tenant/
-│   │   │   ├── tenant.controller.ts
-│   │   │   ├── tenant.service.ts
-│   │   │   ├── tenant.routes.ts
-│   │   │   ├── tenant.validator.ts
-│   │   │   └── tenant.provision.ts   # DB creation logic
-│   │
-│   │   ├── user/
-│   │   │   ├── user.controller.ts
-│   │   │   ├── user.service.ts
-│   │   │   ├── user.repository.ts
-│   │   │   ├── user.routes.ts
-│   │   │   └── user.validator.ts
-│   │
-│   │   ├── doctor/
-│   │   │   ├── doctor.controller.ts
-│   │   │   ├── doctor.service.ts
-│   │   │   ├── doctor.repository.ts
-│   │   │   ├── doctor.routes.ts
-│   │   │   └── doctor.validator.ts
-│   │
-│   │   ├── patient/
-│   │   │   ├── patient.controller.ts
-│   │   │   ├── patient.service.ts
-│   │   │   ├── patient.repository.ts
-│   │   │   ├── patient.routes.ts
-│   │   │   └── patient.validator.ts
-│   │
-│   │   ├── appointment/
-│   │   │   ├── appointment.controller.ts
-│   │   │   ├── appointment.service.ts
-│   │   │   ├── appointment.repository.ts
-│   │   │   ├── appointment.routes.ts
-│   │   │   └── appointment.validator.ts
-│   │
-│   │   ├── notification/
-│   │   │   ├── notification.service.ts
-│   │   │   ├── notification.worker.ts
-│   │   │   ├── notification.queue.ts
-│   │   │   └── notification.preference.ts
-│   │
-│   │   ├── billing/
-│   │   │   ├── billing.controller.ts
-│   │   │   ├── billing.service.ts
-│   │   │   └── billing.routes.ts
-│   │
-│   │   └── audit/
-│   │       ├── audit.service.ts
-│   │       └── audit.listener.ts
-│
-│   ├── middleware/
-│   │   ├── auth.middleware.ts
-│   │   ├── tenant.middleware.ts
-│   │   ├── rbac.middleware.ts
-│   │   ├── rateLimit.middleware.ts
-│   │   ├── validation.middleware.ts
-│   │   └── error.middleware.ts
-│
-│   ├── utils/
-│   │   ├── jwt.util.ts
-│   │   ├── password.util.ts
-│   │   ├── response.util.ts
-│   │   ├── logger.util.ts
-│   │   └── encryption.util.ts
-│
-│   ├── routes.ts               # Route aggregator
-│   ├── types/
-│   │   ├── express.d.ts
-│   │   └── common.types.ts
-│
-│   └── jobs/
-│       ├── email.job.ts
-│       ├── notification.job.ts
-│       └── backup.job.ts
-│── scripts/
-├── prisma/
-├── tests/
-├── Dockerfile
-└── tsconfig.json
+│   ├── app.ts                   # Express app configuration
+│   ├── server.ts                # Server entry point
+│   ├── config/                  # Centralized config (database, auth, etc.)
+│   ├── controllers/             # Controller layer (handles req/res)
+│   ├── middlewares/             # Custom Express middlewares
+│   ├── repository/              # Data access layer (Prisma repositories)
+│   ├── routes/                  # API route definitions
+│   ├── services/                # Service layer (business logic)
+│   ├── utils/                   # Utility functions
+│   └── modules/                 # Special modules (e.g., tenant provisioning)
+├── prisma/                      # Prisma schemas (master & tenant)
+└── scripts/                     # Helper scripts
 ```
 
 ## 🛠️ Development Setup
@@ -159,6 +56,7 @@ docker run --name postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgre
 docker run --name redis -p 6379:6379 -d redis:7
 
 # Run database migrations
+pnpm db:generate
 pnpm prisma migrate dev
 
 # Seed the database
@@ -208,36 +106,27 @@ SENTRY_DSN="your-sentry-dsn"
 
 ## 📊 API Endpoints
 
-### Authentication
+### Super Admin (Base: `/api/v1/super-admin`)
 ```
-POST   /api/v1/auth/register        # User registration
-POST   /api/v1/auth/login           # User login
-POST   /api/v1/auth/refresh         # Refresh token
-POST   /api/v1/auth/logout          # User logout
-```
-
-### Patients
-```
-GET    /api/v1/patients             # List patients (paginated)
-POST   /api/v1/patients             # Create patient
-GET    /api/v1/patients/:id         # Get patient details
-PUT    /api/v1/patients/:id         # Update patient
-DELETE /api/v1/patients/:id         # Delete patient
+POST   /add                         # Create Super Admin
+PUT    /edit/:id                    # Edit Super Admin
+DELETE /delete/:id                  # Delete Super Admin
+POST   /tenants/add                 # Provision Tenant
+GET    /tenants/list                # List all Tenants
+GET    /tenants/detail/:id          # Tenant details
+PUT    /tenants/edit/:id            # Edit Tenant
+DELETE /tenants/delete/:id          # De-provision Tenant
+GET    /stats                       # Dashboard stats
 ```
 
-### Appointments
+### Pricing Plans (Base: `/api/v1/pricing-plans`)
 ```
-GET    /api/v1/appointments         # List appointments
-POST   /api/v1/appointments         # Book appointment
-GET    /api/v1/appointments/:id     # Get appointment details
-PUT    /api/v1/appointments/:id     # Update appointment
-DELETE /api/v1/appointments/:id     # Cancel appointment
-```
-
-### File Upload
-```
-POST   /api/v1/upload/patient       # Upload patient documents
-POST   /api/v1/upload/medical       # Upload medical records
+GET    /list                        # List public active plans
+GET    /detail/:id                  # Plan details
+GET    /admin/list                  # List all plans (Admin)
+POST   /add                         # Add new plan
+PUT    /edit/:id                    # Edit plan
+DELETE /delete/:id                  # Delete plan
 ```
 
 ## 🗄️ Database Schema

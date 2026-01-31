@@ -26,12 +26,18 @@ export class TenantRepository {
         return await masterPrisma.tenant.delete({ where: { id } });
     };
 
-    async listTenant() {
+    async listTenant(skip?: number, take?: number) {
         return await masterPrisma.tenant.findMany({
+            skip,
+            take,
             include: {
                 subscriptions: true
             }
         });
     };
+
+    async countTenants() {
+        return await masterPrisma.tenant.count();
+    }
 
 };

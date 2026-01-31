@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { SuperAdminService } from '../services/superAdmin.service';
+import { sendSuccess } from "../utils/apiResponse.util";
 
 export class SuperAdminController {
     private superAdminService = new SuperAdminService();
@@ -78,12 +79,8 @@ export class SuperAdminController {
 
     listTenant = async (req: Request, res: Response) => {
         try {
-            const result = await this.superAdminService.listTenant();
-            res.status(200).json({
-                success: true,
-                message: "Tenants listed successfully",
-                data: result
-            });
+            const result = await this.superAdminService.listTenant(req.query);
+            return sendSuccess(res, "Tenants listed successfully", result.data, 200, result.meta);
         } catch (err: any) {
             res.status(500).json({
                 success: false,
@@ -160,4 +157,21 @@ export class SuperAdminController {
         }
     };
 
+    editTenantStatus = async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const { status } = req.body;
+            const result = await this.superAdminService.editTenantStatus(id, status);
+            res.status(200).json({
+                success: true,
+                message: "Status updated successfully",
+            });
+        } catch (err: any) {
+            res.status(500).json({
+                success: false,
+                message: err.message
+            });
+        };
+
+    };
 };

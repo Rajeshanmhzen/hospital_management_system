@@ -58,9 +58,15 @@ hospital-management-system/
 │
 ├── backend/
 │   ├── src/
-│   ├── prisma/
-│   ├── tests/
-│   └── docs/
+│   │   ├── config/                  # App & Database configurations
+│   │   ├── controllers/             # Express controllers (request handlers)
+│   │   ├── middlewares/             # Authentication & global middlewares
+│   │   ├── repository/              # Data access layer (Prisma calls)
+│   │   ├── routes/                  # API route definitions
+│   │   ├── services/                # Business logic layer
+│   │   └── utils/                   # Shared utilities
+│   ├── prisma/                      # Prisma schemas & migrations
+│   └── docs/                        # API & project documentation
 │
 ├── infra/                        # Docker, Nginx, CI/CD
 │
@@ -93,6 +99,7 @@ cd backend
 pnpm install
 cp .env.example .env
 # Configure environment variables
+pnpm db:generate
 pnpm prisma migrate dev
 pnpm prisma db seed
 pnpm run dev
@@ -150,17 +157,12 @@ pnpm run dev
 - **Postman collection** available
 - **Rate limits**: 1000 req/hour per user
 
-### Core Endpoints
+### Super Admin & Pricing
 ```
-POST   /api/v1/auth/login           # User authentication
-POST   /api/v1/auth/refresh         # Token refresh
-GET    /api/v1/patients             # List patients (paginated)
-POST   /api/v1/patients             # Create patient
-GET    /api/v1/patients/:id         # Get patient details
-PUT    /api/v1/patients/:id         # Update patient
-GET    /api/v1/appointments         # List appointments
-POST   /api/v1/appointments         # Book appointment
-GET    /api/v1/analytics/dashboard  # Dashboard metrics
+POST   /api/v1/super-admin/add              # Create Super Admin
+GET    /api/v1/super-admin/tenants/list     # List all tenants
+POST   /api/v1/pricing-plans/add            # Create pricing plan
+GET    /api/v1/pricing-plans/list           # List public plans
 ```
 
 ## 🚀 Deployment

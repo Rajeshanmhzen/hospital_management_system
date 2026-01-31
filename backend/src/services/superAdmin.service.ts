@@ -4,6 +4,8 @@ import { TenantRepository } from "../repository/tenant.repository";
 import { hashPassword } from "../utils/password.util";
 import { TenantPrismaClient } from "../../prisma/tenant/client";
 import { UserRole } from "../utils/userRoles";
+import { TenantStatus } from "@prisma/master-client";
+import { getPaginationMeta, getPaginationParams } from "../utils/pagination.util";
 
 function santizeDbName(subdomain: string): string {
   return subdomain
@@ -134,9 +136,17 @@ export class SuperAdminService {
     return await this.tenantrepo.deleteTenant(id);
   };
 
-  async listTenant() {
-    return await this.tenantrepo.listTenant();
+  async listTenant(query: any) {
+    const { skip, take, page, limit } = getPaginationParams(query);
+    const data = await this.tenantrepo.listTenant(skip, take);
+    const totalCount = await this.tenantrepo.countTenants();
+
+    return {
+      data,
+      meta: getPaginationMeta(totalCount, page, limit)
+    };
   };
+
   async detailTenant(id: string) {
     return await this.tenantrepo.detailTenant(id);
   };
@@ -191,4 +201,9 @@ export class SuperAdminService {
     };
   };
 
+  async editTenantStatus(id: string, status: TenantStatus) {
+    const tentant = await this.tenantrepo.detailTenant(id);
+    if (!tentant) throw new Error("Tenant not found!");
+    return await this.tenantrepo.editTenant(id, { status });
+  };
 };
