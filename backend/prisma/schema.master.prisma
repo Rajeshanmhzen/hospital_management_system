@@ -30,7 +30,7 @@ model Tenant {
   status        TenantStatus  @default(PENDING)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  subscriptions Subscription?
+  subscriptions Subscription[]
 
   @@map("tenants")
 }
@@ -56,7 +56,7 @@ model PricingPlan {
 
 model Subscription {
   id           String             @id @default(uuid())
-  tenantId     String             @unique
+  tenantId     String             
   planId       String
   planName     String
   planPrice    Decimal            @db.Decimal(10, 2)
