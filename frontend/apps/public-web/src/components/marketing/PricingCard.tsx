@@ -24,23 +24,23 @@ export default function PricingPage() {
   const fetchPricingPlans = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-      const response = await fetch(`${apiUrl}/api/v1/pricing-plans`, {
+      const response = await fetch(`${apiUrl}/api/v1/pricing-plans/list`, {
         cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
         },
       })
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
+
       const data = await response.json()
       console.log('Fetched pricing data:', data)
       setPlans(data.sort((a: PricingPlan, b: PricingPlan) => a.displayOrder - b.displayOrder))
     } catch (error) {
       console.error('Error fetching pricing plans:', error)
-      
+
       // Fallback to mock data for development
       const mockPlans: PricingPlan[] = [
         {
@@ -93,7 +93,7 @@ export default function PricingPage() {
           displayOrder: 3
         }
       ]
-      
+
       console.log('Using mock data')
       setPlans(mockPlans)
       setError(null) // Clear error when using mock data
@@ -149,14 +149,14 @@ export default function PricingPage() {
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md">
           <div className="flex items-center gap-2 text-red-700 dark:text-red-400 mb-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <h3 className="font-semibold">Error</h3>
           </div>
           <p className="text-red-600 dark:text-red-300">{error}</p>
-          <button 
+          <button
             onClick={fetchPricingPlans}
             className="mt-4 px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600"
           >
@@ -180,7 +180,7 @@ export default function PricingPage() {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Choose the perfect plan for your healthcare facility. Scalable solutions designed for every stage of growth.
           </p>
-          
+
           {/* Rounded Pill Toggle */}
           <div className="flex items-center justify-center gap-4">
             <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -192,9 +192,8 @@ export default function PricingPage() {
               style={{ backgroundColor: isAnnual ? '#3b82f6' : '#d1d5db' }}
             >
               <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
-                  isAnnual ? 'translate-x-7' : 'translate-x-1'
-                }`}
+                className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${isAnnual ? 'translate-x-7' : 'translate-x-1'
+                  }`}
               />
             </button>
             <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -217,24 +216,23 @@ export default function PricingPage() {
 
               return (
                 <div key={plan.id} className="relative mt-8">
-                  <div 
-                    className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border ${
-                      isPopular ? 'border-blue-500 dark:border-blue-400 border-2' : 'border-gray-200 dark:border-gray-700'
-                    }`}
+                  <div
+                    className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border ${isPopular ? 'border-blue-500 dark:border-blue-400 border-2' : 'border-gray-200 dark:border-gray-700'
+                      }`}
                   >
                     {isPopular && (
-                      <div 
+                      <div
                         className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold whitespace-nowrap"
                         style={{ zIndex: 10 }}
                       >
                         MOST POPULAR
                       </div>
                     )}
-                    
+
                     <div className="text-center mb-6">
                       <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">{plan.name}</h3>
                       <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{plan.description}</p>
-                      
+
                       <div className="mb-4">
                         {isCustom ? (
                           <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">Custom</div>
@@ -260,14 +258,14 @@ export default function PricingPage() {
                       {Array.isArray(plan.features) && plan.features.length > 0 ? (
                         plan.features.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-start gap-2">
-                            <svg 
-                              width="20" 
-                              height="20" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
                               strokeLinejoin="round"
                               className="text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5"
                             >
@@ -283,12 +281,11 @@ export default function PricingPage() {
                       )}
                     </ul>
 
-                    <button 
-                      className={`w-full py-2.5 px-4 rounded-lg font-medium transition-colors ${
-                        isPopular 
-                          ? 'bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-500' 
-                          : 'bg-white dark:bg-gray-800 text-blue-500 dark:text-blue-400 border-2 border-blue-500 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
-                      }`}
+                    <button
+                      className={`w-full py-2.5 px-4 rounded-lg font-medium transition-colors ${isPopular
+                        ? 'bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-500'
+                        : 'bg-white dark:bg-gray-800 text-blue-500 dark:text-blue-400 border-2 border-blue-500 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
+                        }`}
                       onClick={() => handleSelectPlan(plan.name)}
                     >
                       {isCustom ? 'Contact Sales' : 'Choose Plan'}

@@ -18,6 +18,7 @@ import {
     IconStethoscope
 } from '@tabler/icons-react';
 import classes from './Sidebar.module.css';
+import api from '../../utils/api';
 
 const data = [
     { link: '/', label: 'Dashboard', icon: IconLayoutDashboard },
@@ -46,6 +47,21 @@ export function Sidebar({ collapsed }: SidebarProps) {
             {!collapsed && <span>{item.label}</span>}
         </UnstyledButton>
     ));
+
+    const handleLogout = async () => {
+        try {
+            // Attempt to call backend logout
+            await api.post('/auth/logout');
+        } catch (error) {
+            console.error('Logout error', error);
+        } finally {
+            // Clear local storage and redirect
+            localStorage.removeItem('token');
+            // Redirect to public login or reload. 
+            // Assuming public web handles auth or there's a login redirect.
+            window.location.href = '/login';
+        }
+    };
 
     return (
         <nav className={classes.navbar} data-collapsed={collapsed || undefined}>
@@ -87,9 +103,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
                     <UnstyledButton
                         className={`${classes.link} ${classes.logout}`}
                         mt="md"
-                        onClick={(event) => {
-                            event.preventDefault();
-                        }}
+                        onClick={handleLogout}
                     >
                         <IconLogout className={classes.linkIcon} stroke={1.5} />
                         {!collapsed && <span>Sign Out</span>}

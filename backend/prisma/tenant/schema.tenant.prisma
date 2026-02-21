@@ -99,7 +99,7 @@ model Doctor {
   consultationFee Decimal @db.Decimal(10, 2)
   isAvailable     Boolean @default(true)
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   user       User   @relation(fields: [userId], references: [id])
   schedules  DoctorSchedule[]
@@ -109,7 +109,7 @@ model Doctor {
 model NotificationPreference {
   id           String @id @default(cuid())
   userId       String
-  tentantId    String
+  tenantId    String
 
   email        Boolean @default(true)
   sms          Boolean @default(true)

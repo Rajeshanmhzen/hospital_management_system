@@ -10,7 +10,7 @@ import router from './routes/index.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MantineProvider defaultColorScheme="light">
+    <MantineProvider defaultColorScheme="dark">
       <Notifications />
       <RouterProvider router={router} />
     </MantineProvider>

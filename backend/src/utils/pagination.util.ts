@@ -25,7 +25,6 @@ export const getPaginationParams = (query: PaginationQuery): PaginationParams =>
     return { skip, take: limit, page, limit };
 };
 
-
 export const getPaginationMeta = (totalCount: number, page: number, limit: number): PaginationMeta => {
     const totalPages = Math.ceil(totalCount / limit);
 

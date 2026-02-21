@@ -7,7 +7,7 @@ import { useState } from 'react';
 export function DashboardLayout() {
     const [collapsed, setCollapsed] = useState(false);
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#000000' }}>
+        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--mantine-color-body)' }}>
             <Sidebar collapsed={collapsed} />
             <main style={{
                 flex: 1,
@@ -15,7 +15,8 @@ export function DashboardLayout() {
                 padding: '0',
                 transition: 'margin-left 0.3s ease',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                backgroundColor: 'var(--mantine-color-body)'
             }}>
                 <Header onToggle={() => setCollapsed(!collapsed)} />
 
