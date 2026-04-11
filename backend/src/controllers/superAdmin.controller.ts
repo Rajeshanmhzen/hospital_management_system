@@ -41,11 +41,34 @@ export class SuperAdminController {
 
     addTenant = asyncHandler(async (req: Request, res: Response) => {
         const tenantData = req.body;
+        const asyncProvision = req.query.async !== "false";
+        const result = await this.superAdminService.addTenant(tenantData, asyncProvision);
 
-        const result = await this.superAdminService.addTenant(tenantData);
+        const data = asyncProvision
+            ? {
+                ...(result as any),
+                jobStatusUrl: `/api/v1/super-admin/jobs/${(result as any).jobId}`
+            }
+            : result;
+
         res.status(201).json({
             success: true,
-            message: "Tenant added successfully",
+            message: asyncProvision ? "Tenant provisioning started" : "Tenant added successfully",
+            data
+        });
+    });
+
+    getProvisioningJobStatus = asyncHandler(async (req: Request, res: Response) => {
+        const { jobId } = req.params;
+        const result = await this.superAdminService.getJobStatus(jobId);
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: "Job not found"
+            });
+        }
+        return res.status(200).json({
+            success: true,
             data: result
         });
     });

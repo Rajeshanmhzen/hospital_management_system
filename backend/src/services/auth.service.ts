@@ -1,9 +1,10 @@
-import { TenantPrismaClient } from "../../prisma/tenant/client";
 import { UserRole } from "../utils/userRoles";
 import { comparePassword } from "../utils/password.util";
 import { generateTokens, generateAccessToken, verifyRefreshToken } from "../utils/jwt.util";
 import { SuperAdminRepository } from "../repository/superAdmin.repository";
 import { TenantRepository } from "../repository/tenant.repository";
+import { cache } from "../config/cache";
+import { getTenantPrismaClient } from "../config/tenant-prisma-manager";
 
 export class AuthService {
     private superAdminRepo = new SuperAdminRepository();
@@ -27,6 +28,7 @@ export class AuthService {
         // 2. If not SuperAdmin, proceed with Tenant User Login
         let targetTenantId = tenantId;
         let targetTenant: any = null;
+        const emailTenantCacheKey = `login:tenant-email:${email.toLowerCase()}`;
 
         // If tenantId is provided, just check that specific tenant
         if (targetTenantId) {
@@ -35,26 +37,32 @@ export class AuthService {
         }
         // If no tenantId, search ALL tenants for this user (Fallback for Email-Only Login)
         else {
-            const allTenants = await this.tenantRepo.listTenant();
+            const cachedTenantId = await cache.get(emailTenantCacheKey);
+            if (cachedTenantId) {
+                targetTenant = await this.tenantRepo.detailTenant(cachedTenantId);
+                if (targetTenant) {
+                    targetTenantId = targetTenant.id;
+                }
+            }
 
-            // Iterate through tenants to find the user
-            for (const tenant of allTenants) {
-                const tenantPrisma = new TenantPrismaClient({
-                    datasources: { db: { url: tenant.dbUrl } },
-                });
+            if (!targetTenantId || !targetTenant) {
+                const allTenants = await this.tenantRepo.listTenant();
 
-                try {
-                    const user = await tenantPrisma.user.findUnique({ where: { email } });
-                    if (user) {
-                        targetTenant = tenant;
-                        targetTenantId = tenant.id;
-                        await tenantPrisma.$disconnect();
-                        break; // Found the user!
+                // Fallback scan, cached after first hit
+                for (const tenant of allTenants) {
+                    const tenantPrisma = getTenantPrismaClient(tenant.dbUrl);
+
+                    try {
+                        const user = await tenantPrisma.user.findUnique({ where: { email } });
+                        if (user) {
+                            targetTenant = tenant;
+                            targetTenantId = tenant.id;
+                            await cache.set(emailTenantCacheKey, tenant.id, 3600);
+                            break;
+                        }
+                    } catch (err) {
+                        // Ignore connection errors for individual tenants during search
                     }
-                } catch (err) {
-                    // Ignore connection errors for individual tenants during search
-                } finally {
-                    await tenantPrisma.$disconnect();
                 }
             }
 
@@ -64,9 +72,7 @@ export class AuthService {
         }
 
         // 3. Proceed with Login on the identified Tenant
-        const tenantPrisma = new TenantPrismaClient({
-            datasources: { db: { url: targetTenant.dbUrl } },
-        });
+        const tenantPrisma = getTenantPrismaClient(targetTenant.dbUrl);
 
         try {
             const user = await tenantPrisma.user.findUnique({
@@ -93,7 +99,7 @@ export class AuthService {
                 }
             }
         } finally {
-            await tenantPrisma.$disconnect();
+            // shared client, no per-request disconnect
         }
 
         throw new Error("Invalid credentials");
@@ -105,16 +111,14 @@ export class AuthService {
         const tenant = await this.tenantRepo.detailTenant(tenantId);
         if (!tenant) return;
 
-        const tenantPrisma = new TenantPrismaClient({
-            datasources: { db: { url: tenant.dbUrl } },
-        });
+        const tenantPrisma = getTenantPrismaClient(tenant.dbUrl);
 
         try {
             await tenantPrisma.refreshToken.deleteMany({
                 where: { token: refreshToken },
             });
         } finally {
-            await tenantPrisma.$disconnect();
+            // shared client, no per-request disconnect
         }
     }
 
@@ -132,9 +136,7 @@ export class AuthService {
                 const tenant = await this.tenantRepo.detailTenant(decoded.tenantId);
                 if (!tenant) throw new Error("Invalid tenant");
 
-                const tenantPrisma = new TenantPrismaClient({
-                    datasources: { db: { url: tenant.dbUrl } },
-                });
+                const tenantPrisma = getTenantPrismaClient(tenant.dbUrl);
 
                 try {
                     const storedToken = await tenantPrisma.refreshToken.findFirst({
@@ -157,7 +159,7 @@ export class AuthService {
                     const newAccessToken = await generateAccessToken(payload);
                     return { accessToken: newAccessToken, user: payload };
                 } finally {
-                    await tenantPrisma.$disconnect();
+                    // shared client, no per-request disconnect
                 }
             }
 

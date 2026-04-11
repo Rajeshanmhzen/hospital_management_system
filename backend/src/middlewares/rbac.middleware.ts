@@ -1,8 +1,3 @@
-// import { PrismaClient } from "../node_modules/.prisma/tenant-client";
-import { PrismaClient } from "../../node_modules/.prisma/tenant-client";
-
-const prisma = new PrismaClient();
-
 export const rbac =
   (allowedRoles: string[]) =>
   async (req: any, res: any, next: any) => {
@@ -13,7 +8,11 @@ export const rbac =
 
       const userId = req.user.id;
 
-      const roles = await prisma.userRoleMapping.findMany({
+      if (!req.prisma) {
+        return res.status(500).json({ message: "Tenant database not resolved" });
+      }
+
+      const roles = await req.prisma.userRoleMapping.findMany({
         where: { userId },
         select: { role: true },
       });

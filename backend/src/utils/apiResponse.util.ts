@@ -5,12 +5,14 @@ interface SuccessResponse<T> {
     message: string;
     data: T;
     meta?: any;
+    requestId?: string;
 };
 
 interface ErrorResponse {
     success: false;
     message: string;
     errors?: any;
+    requestId?: string;
 };
 
 export const sendSuccess = <T>(
@@ -20,11 +22,13 @@ export const sendSuccess = <T>(
     statusCode: number = 200,
     meta?: any
 ) => {
+    const requestId = res.locals?.requestId;
     const response: SuccessResponse<T> = {
         success: true,
         message,
         data,
         meta,
+        requestId,
     };
     return res.status(statusCode).json(response);
 };
@@ -36,10 +40,12 @@ export const sendError = (
     statusCode: number = 500,
     errors?: any
 ) => {
+    const requestId = res.locals?.requestId;
     const response: ErrorResponse = {
         success: false,
         message,
         errors,
+        requestId,
     };
     return res.status(statusCode).json(response);
 };

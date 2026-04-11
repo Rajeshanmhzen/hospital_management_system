@@ -1,24 +1,18 @@
-import { createTenantDatabase, dropTenantDatabase, migrateTenantDatabase } from "../modules/tenant/tenant.provision";
+import { dropTenantDatabase } from "../modules/tenant/tenant.provision";
 import { SuperAdminRepository } from "../repository/superAdmin.repository";
 import { TenantRepository } from "../repository/tenant.repository";
 import { hashPassword } from "../utils/password.util";
-import { TenantPrismaClient } from "../../prisma/tenant/client";
-import { UserRole } from "../utils/userRoles";
 import { TenantStatus } from "@prisma/master-client";
 import { getPaginationMeta, getPaginationParams } from "../utils/pagination.util";
-
-function santizeDbName(subdomain: string): string {
-  return subdomain
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '_')
-    .replace(/_{2,}/g, '_')
-    .replace(/^_|_$/g, '');
-};
+import { TenantOnboardingInput, TenantOnboardingService } from "./tenantOnboarding.service";
+import { BackgroundJobService } from "./backgroundJob.service";
 
 
 export class SuperAdminService {
   private superAdminRepo = new SuperAdminRepository;
   private tenantrepo = new TenantRepository;
+  private tenantOnboardingService = new TenantOnboardingService();
+  private backgroundJobService = new BackgroundJobService();
 
   async addSuperAdmin(data: {
     email: string;
@@ -47,91 +41,16 @@ export class SuperAdminService {
     return await this.superAdminRepo.editSuperAdmin(id, data);
   };
 
-  async addTenant(tenantData: {
-    name: string;
-    subdomain: string;
-    ownerName: string;
-    ownerEmail: string;
-    password?: string;
-    planId?: string;
-    billingCycle?: string;
-  }) {
-    const { name, subdomain, ownerName, ownerEmail, password } = tenantData;
-    const existinguser = await this.tenantrepo.detailTenantByEmail(ownerEmail);
-    if (existinguser) throw new Error("Tenant already exists!");
-    const existingBySubdomain = await this.tenantrepo.detailTenantBySubdomain(tenantData.subdomain);
-    if (existingBySubdomain) throw new Error("Subdomain already exists!");
-    const sanitizeName = santizeDbName(tenantData.subdomain);
-    const dbName = `medflow_tenant_${sanitizeName}`;
-    const tenantDbUrl = `postgresql://postgres:MakeYourOwn%40123%23@localhost:5432/${dbName}`;
-    let dbCreated = false;
-    try {
-      await createTenantDatabase(dbName);
-      dbCreated = true;
-      await migrateTenantDatabase(tenantDbUrl);
-
-      const payload = {
-        name: name,
-        subdomain: subdomain,
-        ownerName: ownerName,
-        ownerEmail: ownerEmail,
-        dbUrl: tenantDbUrl
-      };
-
-      const tenant = await this.tenantrepo.addTenant(payload);
-
-      const tenantPrisma = new TenantPrismaClient({
-        datasources: { db: { url: tenantDbUrl } },
-      }) as any;
-
-      try {
-        const hashedPassword = await hashPassword(password || "TempPassword@123");
-        const nameParts = ownerName.trim().split(/\s+/);
-        const firstName = nameParts[0] || "Admin";
-        const lastName = nameParts.slice(1).join(" ") || "User";
-        await tenantPrisma.user.create({
-          data: {
-            email: ownerEmail,
-            password: hashedPassword,
-            firstName: firstName,
-            lastName: lastName,
-            role: {
-              create: {
-                role: UserRole.ADMIN
-              }
-            }
-          }
-        });
-        await tenantPrisma.hospitalProfile.create({
-          data: {
-            name: name,
-            email: ownerEmail,
-          }
-        });
-      } finally {
-        await tenantPrisma.$disconnect();
-      }
-
-      // Create subscription if planId is provided
-      if (tenantData.planId) {
-        try {
-          const { SubscriptionService } = await import("./subscription.service");
-          const subService = new SubscriptionService();
-          await subService.createSubscription({
-            tenantId: tenant.id,
-            planId: tenantData.planId,
-            billingCycle: tenantData.billingCycle || 'MONTHLY'
-          });
-        } catch (subError) {
-          console.error(`Subscription creation failed:`, subError);
-        }
-      }
-
-      return tenant;
-    } catch (error: any) {
-      throw error;
-    };
+  async addTenant(tenantData: TenantOnboardingInput, asyncProvision = true) {
+    if (asyncProvision) {
+      return this.backgroundJobService.enqueueTenantProvisioning(tenantData);
+    }
+    return await this.tenantOnboardingService.onboardTenant(tenantData);
   };
+
+  async getJobStatus(jobId: string) {
+    return await this.backgroundJobService.getJob(jobId);
+  }
 
   async editTenant(id: string, data: any) {
     const tenant = await this.tenantrepo.detailTenant(id);

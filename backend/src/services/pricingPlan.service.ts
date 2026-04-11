@@ -1,10 +1,16 @@
 import { PricingPlanRepository } from "../repository/pricingPlan.repository";
+import { cache } from "../config/cache";
 
 export class PricingPlanService {
     private pricingPlanRepo = new PricingPlanRepository();
 
     async listPublicPricingPlan() {
-        return await this.pricingPlanRepo.listPublicPricingPlan();
+        const key = "pricing:public:list";
+        const cached = await cache.get(key);
+        if (cached) return JSON.parse(cached);
+        const data = await this.pricingPlanRepo.listPublicPricingPlan();
+        await cache.set(key, JSON.stringify(data), 300);
+        return data;
     }
 
     async detailPricingPlan(id: string) {
@@ -12,18 +18,32 @@ export class PricingPlanService {
     }
 
     async addPricingPlan(data: any) {
-        return await this.pricingPlanRepo.addPricingPlan(data);
+        const result = await this.pricingPlanRepo.addPricingPlan(data);
+        await cache.del("pricing:public:list");
+        await cache.del("pricing:admin:list");
+        return result;
     }
 
     async editPricingPlan(id: string, data: any) {
-        return await this.pricingPlanRepo.editPricingPlan(id, data);
+        const result = await this.pricingPlanRepo.editPricingPlan(id, data);
+        await cache.del("pricing:public:list");
+        await cache.del("pricing:admin:list");
+        return result;
     }
 
     async deletePricingPlan(id: string) {
-        return await this.pricingPlanRepo.deletePricingPlan(id);
+        const result = await this.pricingPlanRepo.deletePricingPlan(id);
+        await cache.del("pricing:public:list");
+        await cache.del("pricing:admin:list");
+        return result;
     }
 
     async listPricingPlan() {
-        return await this.pricingPlanRepo.listPricingPlan();
+        const key = "pricing:admin:list";
+        const cached = await cache.get(key);
+        if (cached) return JSON.parse(cached);
+        const data = await this.pricingPlanRepo.listPricingPlan();
+        await cache.set(key, JSON.stringify(data), 120);
+        return data;
     }
 }

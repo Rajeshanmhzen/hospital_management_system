@@ -1,8 +1,9 @@
-import { Modal, TextInput, Select, PasswordInput, Button, Stack, Group, Loader } from '@mantine/core';
+import { Modal, TextInput, Select, PasswordInput, Button, Stack, Group, Loader, Alert, Progress, Text, Badge } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { notifications } from '@mantine/notifications';
 import api from '../../utils/api';
+import { IconInfoCircle } from '@tabler/icons-react';
 
 interface AddTenantModalProps {
     opened: boolean;
@@ -13,6 +14,11 @@ interface AddTenantModalProps {
 export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalProps) {
     const [loading, setLoading] = useState(false);
     const [plans, setPlans] = useState<{ value: string; label: string }[]>([]);
+    const [jobId, setJobId] = useState<string | null>(null);
+    const [jobState, setJobState] = useState<string | null>(null);
+    const [progressPercent, setProgressPercent] = useState(0);
+    const [progressStage, setProgressStage] = useState<string>('Waiting to start');
+    const pollingRef = useRef<number | null>(null);
 
     const form = useForm({
         initialValues: {
@@ -36,7 +42,81 @@ export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalPro
         if (opened) {
             fetchPlans();
         }
+
+        if (!opened && pollingRef.current) {
+            window.clearInterval(pollingRef.current);
+            pollingRef.current = null;
+        }
+
+        return () => {
+            if (pollingRef.current) {
+                window.clearInterval(pollingRef.current);
+                pollingRef.current = null;
+            }
+        };
     }, [opened]);
+
+    const resetJobState = () => {
+        setJobId(null);
+        setJobState(null);
+        setProgressPercent(0);
+        setProgressStage('Waiting to start');
+        if (pollingRef.current) {
+            window.clearInterval(pollingRef.current);
+            pollingRef.current = null;
+        }
+    };
+
+    const pollJobStatus = (newJobId: string) => {
+        if (pollingRef.current) {
+            window.clearInterval(pollingRef.current);
+        }
+
+        pollingRef.current = window.setInterval(async () => {
+            try {
+                const res = await api.get(`/super-admin/jobs/${newJobId}`);
+                const job = res?.data?.data;
+                if (!job) return;
+
+                const progress = job.progress || {};
+                setJobState(job.state || null);
+                setProgressPercent(typeof progress.percent === 'number' ? progress.percent : 0);
+                setProgressStage(progress.stage || job.state || 'Processing');
+
+                if (job.state === 'completed') {
+                    if (pollingRef.current) {
+                        window.clearInterval(pollingRef.current);
+                        pollingRef.current = null;
+                    }
+                    setLoading(false);
+                    notifications.show({
+                        title: 'Tenant Ready',
+                        message: 'Tenant database and admin account created successfully',
+                        color: 'green'
+                    });
+                    if (onSuccess) onSuccess();
+                    form.reset();
+                    resetJobState();
+                    onClose();
+                }
+
+                if (job.state === 'failed') {
+                    if (pollingRef.current) {
+                        window.clearInterval(pollingRef.current);
+                        pollingRef.current = null;
+                    }
+                    setLoading(false);
+                    notifications.show({
+                        title: 'Provisioning Failed',
+                        message: job.failedReason || 'Tenant provisioning failed',
+                        color: 'red'
+                    });
+                }
+            } catch (error) {
+                // Keep polling; transient network/API errors can happen.
+            }
+        }, 1500);
+    };
 
     const fetchPlans = async () => {
         try {
@@ -80,15 +160,27 @@ export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalPro
 
     const handleSubmit = async (values: typeof form.values) => {
         setLoading(true);
+        resetJobState();
         try {
-            await api.post('/super-admin/tenants/add', values);
-            notifications.show({ title: 'Success', message: 'Tenant created successfully', color: 'green' });
-            if (onSuccess) onSuccess();
-            form.reset();
-            onClose();
+            const response = await api.post('/super-admin/tenants/add', values);
+            const data = response?.data?.data;
+
+            if (data?.jobId) {
+                setJobId(data.jobId);
+                setJobState('waiting');
+                setProgressPercent(3);
+                setProgressStage('Tenant provisioning queued');
+                notifications.show({ title: 'Started', message: 'Tenant provisioning started', color: 'blue' });
+                pollJobStatus(data.jobId);
+            } else {
+                notifications.show({ title: 'Success', message: 'Tenant created successfully', color: 'green' });
+                if (onSuccess) onSuccess();
+                form.reset();
+                onClose();
+            }
         } catch (error: any) {
             notifications.show({ title: 'Error', message: error.response?.data?.message || 'Failed to create tenant', color: 'red' });
-        } finally {
+            resetJobState();
             setLoading(false);
         }
     };
@@ -108,6 +200,18 @@ export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalPro
             {/* LoadingOverlay removed */}
             <form onSubmit={form.onSubmit(handleSubmit)}>
                 <Stack>
+                    {jobId && (
+                        <Alert variant="light" color={jobState === 'failed' ? 'red' : 'blue'} icon={<IconInfoCircle size={16} />}>
+                            <Group justify="space-between" mb="xs">
+                                <Text size="sm" fw={600}>Provisioning Status</Text>
+                                <Badge variant="light">{jobState || 'waiting'}</Badge>
+                            </Group>
+                            <Text size="xs" c="dimmed" mb={6}>Job ID: {jobId}</Text>
+                            <Text size="sm" mb={8}>{progressStage}</Text>
+                            <Progress value={progressPercent} animated={jobState !== 'completed' && jobState !== 'failed'} />
+                        </Alert>
+                    )}
+
                     <TextInput label="Hospital/Clinic Name" placeholder="City Hospital" required {...form.getInputProps('name')} />
                     <TextInput
                         label="Subdomain"
@@ -134,9 +238,18 @@ export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalPro
                     />
 
                     <Group justify="flex-end" mt="md">
-                        <Button variant="default" onClick={onClose} disabled={loading}>Cancel</Button>
+                        <Button
+                            variant="default"
+                            onClick={() => {
+                                resetJobState();
+                                onClose();
+                            }}
+                            disabled={loading && !jobId}
+                        >
+                            {loading && jobId ? 'Close' : 'Cancel'}
+                        </Button>
                         <Button type="submit" disabled={loading} leftSection={loading && <Loader size="xs" />}>
-                            {loading ? 'Creating...' : 'Create Tenant'}
+                            {loading ? (jobId ? 'Provisioning...' : 'Creating...') : 'Create Tenant'}
                         </Button>
                     </Group>
                 </Stack>
