@@ -11,14 +11,11 @@ export const authMiddleware = (requiredRole?: string) => {
     try {
       const authHeader = req.headers.authorization;
 
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Access token required'
-        });
-      }
-
-      const token = authHeader.split(' ')[1];
+      const tokenFromHeader = authHeader?.startsWith('Bearer ')
+        ? authHeader.split(' ')[1]
+        : null;
+      const tokenFromCookie = req.cookies?.access_token;
+      const token = tokenFromHeader || tokenFromCookie;
 
       if (!token) {
         return res.status(401).json({

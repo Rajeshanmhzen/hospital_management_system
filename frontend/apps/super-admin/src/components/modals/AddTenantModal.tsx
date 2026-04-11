@@ -1,9 +1,9 @@
-import { Modal, TextInput, Select, PasswordInput, Button, Stack, Group, Loader, Alert, Progress, Text, Badge } from '@mantine/core';
+import { Modal, TextInput, Select, PasswordInput, Button, Stack, Group, Loader, Alert, Progress, Text, Badge, ActionIcon } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useRef, useState } from 'react';
 import { notifications } from '@mantine/notifications';
 import api from '../../utils/api';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { IconInfoCircle, IconWand } from '@tabler/icons-react';
 
 interface AddTenantModalProps {
     opened: boolean;
@@ -158,6 +158,15 @@ export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalPro
         }
     };
 
+    const generate14DigitsPassword = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+        let password = '';
+        for (let i = 0; i < 14; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
+    };
+
     const handleSubmit = async (values: typeof form.values) => {
         setLoading(true);
         resetJobState();
@@ -191,7 +200,7 @@ export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalPro
             onClose={onClose}
             title="Add New Tenant"
             centered
-            size="lg"
+            size="xl"
             overlayProps={{
                 backgroundOpacity: 0.55,
                 blur: 3,
@@ -222,7 +231,27 @@ export function AddTenantModal({ opened, onClose, onSuccess }: AddTenantModalPro
                     />
                     <TextInput label="Owner Name" placeholder="John Doe" required {...form.getInputProps('ownerName')} />
                     <TextInput label="Owner Email" placeholder="john@example.com" required {...form.getInputProps('ownerEmail')} />
-                    <PasswordInput label="Password" placeholder="Strong password" required {...form.getInputProps('password')} />
+                    <Group align="end" wrap="nowrap" gap="sm">
+                        <PasswordInput
+                            label="Password"
+                            placeholder="Strong password"
+                            required
+                            style={{ flex: 1 }}
+                            {...form.getInputProps('password')}
+                        />
+                        <ActionIcon
+                            size={42}
+                            radius="sm"
+                            color="blue"
+                            variant="filled"
+                            mb={1}
+                            onClick={() => form.setFieldValue('password', generate14DigitsPassword())}
+                            aria-label="Generate password"
+                        >
+                            <IconWand size={18} />
+                        </ActionIcon>
+                    </Group>
+
 
                     <Select
                         label="Subscription Plan"

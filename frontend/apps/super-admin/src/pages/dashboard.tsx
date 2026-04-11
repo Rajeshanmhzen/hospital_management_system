@@ -10,7 +10,8 @@ import {
     SimpleGrid,
     Box,
     useMantineColorScheme,
-    Skeleton
+    Skeleton,
+    Alert
 } from '@mantine/core';
 import {
     AreaChart,
@@ -51,6 +52,7 @@ interface DashboardData {
 const Dashboard = () => {
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const theme = useMantineTheme();
     const { colorScheme } = useMantineColorScheme();
     const isDark = colorScheme === 'dark';
@@ -61,9 +63,16 @@ const Dashboard = () => {
                 const response = await api.get('/super-admin/stats');
                 if (response.data.success) {
                     setData(response.data.data);
+                    setErrorMessage(null);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Failed to fetch stats:', error);
+                const status = error?.response?.status;
+                if (status === 401) {
+                    setErrorMessage('Your session is not authenticated. Please login again to view real dashboard values.');
+                } else {
+                    setErrorMessage(error?.response?.data?.message || 'Failed to load dashboard data.');
+                }
             } finally {
                 setLoading(false);
             }
@@ -120,6 +129,12 @@ const Dashboard = () => {
                     </Title>
                     <Text c="dimmed" size="md" fw={500}>Monitor your SaaS ecosystem performance at a glance.</Text>
                 </Box>
+
+                {errorMessage && (
+                    <Alert color="red" title="Unable to load live stats">
+                        {errorMessage}
+                    </Alert>
+                )}
 
                 <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
                     <StatsCard
