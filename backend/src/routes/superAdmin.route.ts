@@ -23,6 +23,8 @@ router.get("/tenants/detail/:id", superAdminController.detailTenant);
 router.put("/tenants/edit/:id", superAdminController.editTenant);
 router.delete("/tenants/delete/:id", superAdminController.deleteTenant);
 router.patch("/tenants/:id/status", superAdminController.editTenantStatus);
+router.patch("/tenants/bulk-status", superAdminController.bulkEditTenantStatus);
+router.get("/tenants/export", superAdminController.exportTenantList);
 router.get("/jobs/:jobId", superAdminController.getProvisioningJobStatus);
 
 // Dashboard Stats

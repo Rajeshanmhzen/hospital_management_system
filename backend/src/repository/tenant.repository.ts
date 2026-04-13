@@ -26,18 +26,31 @@ export class TenantRepository {
         return await masterPrisma.tenant.delete({ where: { id } });
     };
 
-    async listTenant(skip?: number, take?: number) {
+    async listTenant(skip?: number, take?: number, where?: any, orderBy?: any) {
         return await masterPrisma.tenant.findMany({
             skip,
             take,
+            where,
+            orderBy,
             include: {
                 subscriptions: true
             }
         });
     };
 
-    async countTenants() {
-        return await masterPrisma.tenant.count();
+    async updateTenantStatusBulk(ids: string[], status: string) {
+        return await masterPrisma.tenant.updateMany({
+            where: {
+                id: { in: ids }
+            },
+            data: {
+                status: status as any
+            }
+        });
+    }
+
+    async countTenants(where?: any) {
+        return await masterPrisma.tenant.count({ where });
     }
 
 };

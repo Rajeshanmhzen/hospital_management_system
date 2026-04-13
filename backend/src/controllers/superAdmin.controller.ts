@@ -133,4 +133,19 @@ export class SuperAdminController {
             message: "Status updated successfully",
         });
     });
+
+    bulkEditTenantStatus = asyncHandler(async (req: Request, res: Response) => {
+        const { ids, status } = req.body;
+        const result = await this.superAdminService.bulkUpdateTenantStatus(ids, status);
+        res.status(200).json({
+            success: true,
+            message: "Tenant statuses updated successfully",
+            data: result
+        });
+    });
+
+    exportTenantList = asyncHandler(async (req: Request, res: Response) => {
+        const data = await this.superAdminService.exportTenants(req.query);
+        return sendSuccess(res, "Tenants exported successfully", data, 200);
+    });
 };

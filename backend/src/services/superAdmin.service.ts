@@ -76,14 +76,78 @@ export class SuperAdminService {
 
   async listTenant(query: any) {
     const { skip, take, page, limit } = getPaginationParams(query);
-    const data = await this.tenantrepo.listTenant(skip, take);
-    const totalCount = await this.tenantrepo.countTenants();
+    const where: any = {};
+
+    const rawSearch = typeof query?.search === "string" ? query.search.trim() : "";
+    if (rawSearch) {
+      where.OR = [
+        { name: { contains: rawSearch, mode: "insensitive" } },
+        { subdomain: { contains: rawSearch, mode: "insensitive" } },
+        { ownerName: { contains: rawSearch, mode: "insensitive" } },
+        { ownerEmail: { contains: rawSearch, mode: "insensitive" } },
+      ];
+    }
+
+    const rawStatus = typeof query?.status === "string" ? query.status.toUpperCase() : "";
+    if (rawStatus && Object.values(TenantStatus).includes(rawStatus as TenantStatus)) {
+      where.status = rawStatus as TenantStatus;
+    }
+
+    const sortableFields = ["name", "subdomain", "ownerName", "ownerEmail", "status", "createdAt", "updatedAt"];
+    const rawSortBy = typeof query?.sortBy === "string" ? query.sortBy : "createdAt";
+    const rawSortOrder = typeof query?.sortOrder === "string" ? query.sortOrder.toLowerCase() : "desc";
+    const sortBy = sortableFields.includes(rawSortBy) ? rawSortBy : "createdAt";
+    const sortOrder = rawSortOrder === "asc" ? "asc" : "desc";
+    const orderBy = { [sortBy]: sortOrder };
+
+    const data = await this.tenantrepo.listTenant(skip, take, where, orderBy);
+    const totalCount = await this.tenantrepo.countTenants(where);
 
     return {
       data,
       meta: getPaginationMeta(totalCount, page, limit)
     };
   };
+
+  async exportTenants(query: any) {
+    const where: any = {};
+
+    const rawSearch = typeof query?.search === "string" ? query.search.trim() : "";
+    if (rawSearch) {
+      where.OR = [
+        { name: { contains: rawSearch, mode: "insensitive" } },
+        { subdomain: { contains: rawSearch, mode: "insensitive" } },
+        { ownerName: { contains: rawSearch, mode: "insensitive" } },
+        { ownerEmail: { contains: rawSearch, mode: "insensitive" } },
+      ];
+    }
+
+    const rawStatus = typeof query?.status === "string" ? query.status.toUpperCase() : "";
+    if (rawStatus && Object.values(TenantStatus).includes(rawStatus as TenantStatus)) {
+      where.status = rawStatus as TenantStatus;
+    }
+
+    const sortableFields = ["name", "subdomain", "ownerName", "ownerEmail", "status", "createdAt", "updatedAt"];
+    const rawSortBy = typeof query?.sortBy === "string" ? query.sortBy : "createdAt";
+    const rawSortOrder = typeof query?.sortOrder === "string" ? query.sortOrder.toLowerCase() : "desc";
+    const sortBy = sortableFields.includes(rawSortBy) ? rawSortBy : "createdAt";
+    const sortOrder = rawSortOrder === "asc" ? "asc" : "desc";
+    const orderBy = { [sortBy]: sortOrder };
+
+    return await this.tenantrepo.listTenant(undefined, undefined, where, orderBy);
+  }
+
+  async bulkUpdateTenantStatus(ids: string[], status: TenantStatus) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error("Tenant ids are required");
+    }
+
+    if (!Object.values(TenantStatus).includes(status)) {
+      throw new Error("Invalid status");
+    }
+
+    return await this.tenantrepo.updateTenantStatusBulk(ids, status);
+  }
 
   async detailTenant(id: string) {
     return await this.tenantrepo.detailTenant(id);
