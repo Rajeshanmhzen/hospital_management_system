@@ -17,8 +17,9 @@ import {
     Tooltip,
     Select,
     UnstyledButton,
+    useMantineColorScheme,
+    useMantineTheme,
 } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
     IconArrowsSort,
@@ -27,7 +28,6 @@ import {
     IconEdit,
     IconInfoCircle,
     IconRefresh,
-    IconSearch,
     IconTrash,
 } from "@tabler/icons-react";
 import { useSearchParams } from "react-router-dom";
@@ -36,6 +36,8 @@ import { AppTable, type Column } from "../components/shared/Table";
 import { PaginationBar } from "../components/shared/Pagination";
 import { ConfirmationModal } from "../components/shared/ConfirmationModal";
 import { EntityDetailsModal } from "../components/shared/EntityDetailsModal";
+import { SearchInput } from "../components/shared/SearchInput";
+import { useDebouncedSearch } from "../hooks/useDebouncedSearch";
 
 type TenantStatus = "ACTIVE" | "PENDING" | "SUSPENDED" | "INACTIVE";
 type TenantFilterStatus = "ALL" | TenantStatus | "CANCELLED";
@@ -80,6 +82,9 @@ interface TenantListResponse {
 }
 
 const TenantPage = () => {
+    const theme = useMantineTheme();
+    const { colorScheme } = useMantineColorScheme();
+    const isDark = colorScheme === 'dark';
     const pageSize = 10;
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -94,11 +99,15 @@ const TenantPage = () => {
     const [page, setPage] = useState(initialPage > 0 ? initialPage : 1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const [searchInput, setSearchInput] = useState(initialSearch);
+    const {
+        value: searchInput,
+        setValue: setSearchInput,
+        debouncedValue: debouncedSearch,
+        clear: clearSearch,
+    } = useDebouncedSearch(initialSearch, 450);
     const [statusFilter, setStatusFilter] = useState<TenantFilterStatus>(initialStatus);
     const [sortBy, setSortBy] = useState<SortBy>(initialSortBy);
     const [sortOrder, setSortOrder] = useState<SortOrder>(initialSortOrder);
-    const [debouncedSearch] = useDebouncedValue(searchInput, 450);
     const [viewOpened, setViewOpened] = useState(false);
     const [editOpened, setEditOpened] = useState(false);
     const [deleteOpened, setDeleteOpened] = useState(false);
@@ -391,7 +400,7 @@ const TenantPage = () => {
     };
 
     const clearFilters = () => {
-        setSearchInput("");
+        clearSearch();
         setStatusFilter("ALL");
         setSortBy("createdAt");
         setSortOrder("desc");
@@ -568,8 +577,8 @@ const TenantPage = () => {
             <Stack gap="xl">
                 <Group align="center" wrap="nowrap" justify="space-between">
                     <Box>
-                        <Title>Tenant Management</Title>
-                        <Text>Manage your tenants and their information.</Text>
+                        <Title order={1} fw={800} style={{ letterSpacing: '-0.5px' }} c={isDark ? 'white' : 'dark'}>Tenant Management</Title>
+                        <Text c="dimmed" size="md" fw={500}>Manage your tenants and their information.</Text>
                     </Box>
                     <Button leftSection={<IconDownload size={14} />} variant="outline" onClick={handleExportCsv}>
                         Export Tenants
@@ -578,12 +587,11 @@ const TenantPage = () => {
 
                 <Paper withBorder radius="md" p="md">
                     <Group justify="space-between" align="end" mb="md" wrap="wrap">
-                        <TextInput
+                        <SearchInput
                             placeholder="Search by tenant, owner, email, subdomain"
-                            leftSection={<IconSearch size={16} />}
                             value={searchInput}
-                            onChange={(event) => setSearchInput(event.currentTarget.value)}
-                            style={{ minWidth: 320, flex: 1 }}
+                            onChange={setSearchInput}
+                            minWidth={320}
                         />
                         <Select
                             label="Status"

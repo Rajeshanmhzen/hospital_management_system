@@ -15,7 +15,9 @@ import {
     IconSettings,
     IconDatabase,
     IconLogout,
-    IconStethoscope
+    IconStethoscope,
+    IconMail, 
+    IconPackage
 } from '@tabler/icons-react';
 import classes from './Sidebar.module.css';
 import api from '../../utils/api';
@@ -23,6 +25,9 @@ import api from '../../utils/api';
 const data = [
     { link: '/', label: 'Dashboard', icon: IconLayoutDashboard },
     { link: '/tenants', label: 'Tenants', icon: IconUsers },
+    { link: '/inquiry', label: 'Inquiry', icon: IconMail },
+    { link: '/subscriptions', label: 'Subscriptions', icon: IconMail },
+    { link: '/pricing-plans', label: 'Pricing Plans', icon: IconPackage },
     { link: '/billings', label: 'Billings', icon: IconReceipt2 },
     { link: '/settings', label: 'Settings', icon: IconSettings },
     { link: '/logs', label: 'Logs', icon: IconDatabase },
@@ -50,15 +55,11 @@ export function Sidebar({ collapsed }: SidebarProps) {
 
     const handleLogout = async () => {
         try {
-            // Attempt to call backend logout
             await api.post('/auth/logout');
         } catch (error) {
             console.error('Logout error', error);
         } finally {
-            // Clear local storage and redirect
             localStorage.removeItem('token');
-            // Redirect to public login or reload. 
-            // Assuming public web handles auth or there's a login redirect.
             window.location.href = '/login';
         }
     };
