@@ -19,7 +19,7 @@ import {
 import {
     IconArrowsSort,
     IconEdit,
-    IconEye,
+    IconInfoCircle,
     IconPlus,
     IconRefresh,
     IconTrash,
@@ -292,7 +292,7 @@ const SusbcriptionPage = () => {
                             setSelectedSubscription(sub);
                             setViewOpened(true);
                         }}>
-                            <IconEye size={16} />
+                            <IconInfoCircle size={16} />
                         </ActionIcon>
                     </Tooltip>
                     <Tooltip label="Edit" withArrow>

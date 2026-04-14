@@ -4,7 +4,7 @@ import { DashboardLayout } from "../components/layout/DashboardLayout";
 import DashboardPage from "../pages/dashboard";
 import TenantPage from "../pages/tenant";
 import InquiryPage from "../pages/inquiry";
-import SusbcriptionPage from "../pages/susbcription";
+import SusbcriptionPage from "../pages/subscription";
 import PricingPlanPage from "../pages/pricingPlan";
 
 const router = createBrowserRouter([
