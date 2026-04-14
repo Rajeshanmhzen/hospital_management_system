@@ -42,11 +42,24 @@ export class SubscriptionRepository {
         return await masterPrisma.subscription.delete({ where: { id } });
     };
 
-    async listSubscription(skip?: number, take?: number) {
-        return await masterPrisma.subscription.findMany({ skip, take });
+    async listSubscription(skip?: number, take?: number, where?: any, orderBy?: any) {
+        return await masterPrisma.subscription.findMany({
+            skip,
+            take,
+            where,
+            orderBy,
+            include: {
+                tenant: {
+                    select: {
+                        name: true,
+                        subdomain: true,
+                    },
+                },
+            },
+        });
     };
 
-    async countSubscription() {
-        return await masterPrisma.subscription.count();
+    async countSubscription(where?: any) {
+        return await masterPrisma.subscription.count({ where });
     };
 }

@@ -79,8 +79,42 @@ export class SubscriptionService {
 
     async listSubscription(query: any) {
         const { skip, take, page, limit } = getPaginationParams(query);
-        const data = await this.subscriptionRepo.listSubscription(skip, take);
-        const totalCount = await this.subscriptionRepo.countSubscription();
+        const where: any = {};
+        const rawStatus = typeof query?.status === "string" ? query.status.toUpperCase() : "";
+        const searchStatus = typeof query?.search === "string" ? query.search.trim().toUpperCase() : "";
+
+        const rawSearch = typeof query?.search === "string" ? query.search.trim() : "";
+        if (rawSearch) {
+            const searchOr: any[] = [
+                { planName: { contains: rawSearch, mode: "insensitive" } },
+                { billingCycle: { contains: rawSearch, mode: "insensitive" } },
+                { tenantId: { contains: rawSearch, mode: "insensitive" } },
+                { tenant: { is: { name: { contains: rawSearch, mode: "insensitive" } } } },
+                { tenant: { is: { subdomain: { contains: rawSearch, mode: "insensitive" } } } },
+            ];
+
+            if (Object.values(SubscriptionStatus).includes(searchStatus as SubscriptionStatus)) {
+                searchOr.push({ status: { equals: searchStatus as SubscriptionStatus } });
+            }
+
+            where.OR = [
+                ...searchOr,
+            ];
+        }
+
+        if (rawStatus && Object.values(SubscriptionStatus).includes(rawStatus as SubscriptionStatus)) {
+            where.status = rawStatus as SubscriptionStatus;
+        }
+
+        const sortableFields = ["planName", "planPrice", "billingCycle", "status", "startDate", "endDate", "createdAt"];
+        const rawSortBy = typeof query?.sortBy === "string" ? query.sortBy : "createdAt";
+        const rawSortOrder = typeof query?.sortOrder === "string" ? query.sortOrder.toLowerCase() : "desc";
+        const sortBy = sortableFields.includes(rawSortBy) ? rawSortBy : "createdAt";
+        const sortOrder = rawSortOrder === "asc" ? "asc" : "desc";
+        const orderBy = { [sortBy]: sortOrder };
+
+        const data = await this.subscriptionRepo.listSubscription(skip, take, where, orderBy);
+        const totalCount = await this.subscriptionRepo.countSubscription(where);
 
         return { data, meta: getPaginationMeta(totalCount, page, limit) };
     };

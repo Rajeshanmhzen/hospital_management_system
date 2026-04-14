@@ -12,7 +12,7 @@ export function TableSkeleton({ columnsCount, rows = 6 }: TableSkeletonProps) {
                 <MantineTable.Tr key={`skeleton-row-${rowIndex}`}>
                     {Array.from({ length: columnsCount }).map((__, colIndex) => (
                         <MantineTable.Td key={`skeleton-cell-${rowIndex}-${colIndex}`}>
-                            <Skeleton height={16} radius="sm" />
+                            <Skeleton height={20} radius="sm" />
                         </MantineTable.Td>
                     ))}
                 </MantineTable.Tr>
