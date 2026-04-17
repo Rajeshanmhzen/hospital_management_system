@@ -125,11 +125,8 @@ const SusbcriptionPage = () => {
             setTotalItems(response.data?.meta?.totalItems ?? response.data?.meta?.totalCount ?? 0);
             setPage(response.data?.meta?.currentPage ?? response.data?.meta?.page ?? targetPage);
         } catch (error: any) {
-            notifications.show({
-                title: "Failed",
-                message: error?.response?.data?.message || "Unable to fetch subscriptions",
-                color: "red",
-            });
+           console.log("Error while fecthing the subscription");
+           
         } finally {
             setLoading(false);
         }

@@ -111,12 +111,7 @@ const PricingPlanPage = () => {
       );
       setPlans(Array.isArray(response.data) ? response.data : []);
     } catch (error: any) {
-      notifications.show({
-        title: "Failed",
-        message:
-          error?.response?.data?.message || "Unable to fetch pricing plans",
-        color: "red",
-      });
+      console.log("Error while fetching the pricing plan");
     } finally {
       setLoading(false);
     }
